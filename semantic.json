@@ -1,0 +1,53 @@
+{
+    "@context": ["http://www.w3.org/ns/td", 
+                {"iot": "http://iotschema.org/"}],
+    "@type" : "beacon",
+    "id": "urn:dev:wot:com:sofie:gp:iotbeacon",
+    "name": "raspberry pi",
+    "description" : "This is a RSP with services",
+    "support" : "ROVIO",
+    "security": [{"scheme": "basic"}],
+    "properties": {
+        "status": {           
+            "writable": false,
+            "observable": false,
+            "type": "boolean",
+            "forms": [{
+                "href": "https://sofie.example.com/gp/status",
+                "http:methodName": "GET"
+            }]
+        },
+        "iBeacon" : {           
+            "writable": true,
+            "observable": false,
+            "type": "object",
+            "properties": {
+                "UUID": {
+                    "type": "string"
+                },
+                "major": {
+                    "type":  "number"
+                },
+                "minor": {
+                    "type":  "number"
+                }
+            },
+            "forms": [{
+                "href": "https://sofie.example.com/gp/iBeacon",
+                "http:methodName": "POST",
+                "contentType": "application/json"
+            }]
+        }
+    },
+    "actions": {
+        "toggle": {
+            "safe": false,
+            "idempotent": false,
+            "forms": [{
+                "op": "invokeaction",
+                "href": "https://sofie.example.com/gp/toggle",
+                "contentType": "application/json"
+            }]
+        }
+    },
+}
