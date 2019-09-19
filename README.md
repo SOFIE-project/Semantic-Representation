@@ -6,7 +6,7 @@ The Semantic Representation component is a logical component that can be impleme
 
 ## How to write an SR with WoT TD
 
-The TD is a json file which resides in the IoT device or in a device which will act as an entry point of an IoT system. This file is read by any external entity or a system to understand how the IoT device could be used.
+The TD is a json file which resides in the IoT device's file system or in a device which will act as an entry point of an IoT system. This file is read by any external entity or a system to understand how the IoT device could be used.
 
 A TD instance has four main components:
 
@@ -27,4 +27,4 @@ The common situation when using TD is when there is an IoT Device ("the Thing") 
 
 ![High-level architecture of Consumer and Thing](img/servient-consumer-thing.svg "Consumer-Thing")
 
-Reading a TD is an operation that can be done following the WoT standard guidelines or creating an ad-hoc solution. The WoT standard imposes the creation of a component, the Servient, which includes scripts that can read the TD and understand the behaviour of the IoT devices. an Ad-hoc solution is what has been done in this Pilot, so the consumer scripts are created knowing already the behaviour of the TD and not all the requirement of WoT are fulfilled. 
+Reading a TD is an operation that can be done following the WoT standard guidelines or creating an ad-hoc solution. The WoT standard imposes the creation of a component, the Servient, which includes scripts that can read the TD and understand the behaviour of the IoT devices. an Ad-hoc solution is what has been done in this Pilot, so the consumer's scripts are created knowing already the behaviour of the TD and not all the requirement of WoT standards are fulfilled. The second approach is quicker to implement, but it is less reusable.
