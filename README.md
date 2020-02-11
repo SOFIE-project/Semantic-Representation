@@ -16,7 +16,7 @@ A TD instance has four main components:
 4. Links that express any formal or informal relationships with other Things or documents on the Web.
 
 Below is a picture of the TD file used in the pilot:
-![Discovery and Provisioning TD](img/TD-structure-explanation-2.png "Rovio TD")
+![Discovery and Provisioning TD](docs/img/TD-structure-explanation-2.png "Rovio TD")
 
 When creating a TD is important to understand what the IoT device can do and the data type it can handle and share. Then the json file is built accordingly.
 The list of standardized syntax can be found at: [WoT Thing Description](https://www.w3.org/TR/wot-thing-description/). Additional sintaxes can be added to the TD through the TD context extension, as shown in the figure above.
@@ -25,6 +25,6 @@ The list of standardized syntax can be found at: [WoT Thing Description](https:/
 
 The common situation when using TD is when there is an IoT Device ("the Thing") exposing the TD and another device or system which needs to read the Thing TD ("the consumer"). The Thing is a device or a system of devices which can perform actions or share data. The consumer is a device or a system that can communicate with the Thing, reads the Thing's properties and interact with it.
 
-![High-level architecture of Consumer and Thing](img/servient-consumer-thing.svg "Consumer-Thing")
+![High-level architecture of Consumer and Thing](docs/img/servient-consumer-thing.svg "Consumer-Thing")
 
 Reading a TD is an operation that can be done following the WoT standard guidelines or creating an ad-hoc solution. The WoT standard imposes the creation of a component, the Servient, which includes scripts that can read the TD and understand the behaviour of the IoT devices. an Ad-hoc solution is what has been done in this Pilot, so the consumer's scripts are created knowing already the behaviour of the TD and not all the requirement of WoT standards are fulfilled. The second approach is quicker to implement, but it is less reusable.

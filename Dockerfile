@@ -3,19 +3,17 @@ FROM ubuntu:18.04
 LABEL Author=filippo.vimini@ericsson.com
 
 RUN apt-get update && \
-    apt-get install -y python-pip python-dev
+    apt-get install -y python3-pip python3
 
-COPY ./requirements.txt /app/requirements.txt
+WORKDIR /var
 
-WORKDIR /app
+COPY . /var
 
-RUN pip install -r requirements.txt
+RUN pip3 install -r /var/app/requirements.txt
 
-COPY . /app
-
-ENTRYPOINT ["python"]
+ENTRYPOINT ["python3"]
 
 EXPOSE 5000
 
-CMD ["api/sr_interface.py"]
+CMD ["semantic_representation.py"]
 
