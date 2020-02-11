@@ -1,14 +1,14 @@
 from app import app
 import flask
 from .semantic_validator import validate_semantic
-from flask import request, jsonify
+from flask import request, jsonify, render_template
 
 
 
 # Test rutes
 @app.route('/', methods=['GET'])
 def home():
-    return "<h1>Distant Reading Archive</h1>"
+    return render_template('index.html')
 
 # REST API for validate JSON object
 @app.route('/api/v1/validate', methods=['POST'])

@@ -1,9 +1,7 @@
-FROM ubuntu:18.04
+ 
+FROM python:3.7-alpine
 
 LABEL Author=filippo.vimini@ericsson.com
-
-RUN apt-get update && \
-    apt-get install -y python3-pip python3
 
 WORKDIR /var
 
@@ -11,9 +9,8 @@ COPY . /var
 
 RUN pip3 install -r /var/app/requirements.txt
 
-ENTRYPOINT ["python3"]
+RUN chmod +x /var/boot.sh 
 
 EXPOSE 5000
 
-CMD ["semantic_representation.py"]
-
+ENTRYPOINT [ "sh","/var/boot.sh" ]
