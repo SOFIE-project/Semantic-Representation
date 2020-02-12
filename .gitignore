@@ -5,3 +5,6 @@ __pycache__
 # Linux tools
 container_reset.sh
 *.swp
+
+# Variables
+app/static/*
