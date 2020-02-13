@@ -1,0 +1,52 @@
+{
+    "@context": ["https://www.w3.org/2019/wot/td/v1"],
+    "@type" : "ThingTemplate",
+    "title": "Smart Locker",
+    "description" : "Smart Locker",
+    "securityDefinitions": {
+        "bearer_sc": {
+            "description": "bearer token available to locker renter",
+            "in": "header",
+            "scheme": "bearer",
+            "format": "jwt",
+            "alg": "ES256"
+        }
+    },
+    "security": ["bearer_sc"],
+    "properties": {
+        "status": {
+            "description" : "textual description of the locker state (locked|unlocked|unknown)",
+            "type": "string",
+            "readOnly": true,
+            "forms": [{"href": "//api/status"}]
+        },
+        "locked": {
+            "description": "state of the lock on the locker (0 = unlocked, 1 = locked, null = unknown)",
+            "type": "boolean",
+            "readOnly": true,
+            "forms": [{"href": "//api/status/locked"}]
+        }
+    },
+    "actions": {
+        "lock": {
+            "description" : "lock the locker",
+            "forms": [{"href": "//api/action/lock"}]
+        },
+        "unlock": {
+            "description" : "unlock the locker",
+            "forms": [{"href": "//api/action/unlock"}]
+        }
+    },
+    "events": {
+        "locked": {
+            "description" : "locker has been locked",
+            "data": {"timestamp": "dateTime"},
+            "forms": [{"href": "//api/events"}]
+        },
+        "unlocked": {
+            "description" : "locker has been unlocked",
+            "data": {"timestamp": "dateTime"},
+            "forms": [{"href": "//api/events"}]
+        }
+    }
+}

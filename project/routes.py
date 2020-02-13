@@ -1,10 +1,8 @@
-from app import app
+from project import app
 import flask
-import json
-import yaml
-import os
 from .semantic_json_validator import validate_semantic
-from flask import request, jsonify, render_template
+from .manage_schema import get_schema
+from flask import request, render_template
 
 @app.route('/', methods=['GET'])
 def home():
@@ -17,13 +15,10 @@ def validate_task():
         flask.abort(400) #TODO more informative message
     return 201 if validate_semantic(request.json) else flask.abort(flask.Response('Validation failed'))
 
-@app.route('/api/v1/getschema', methods=['GET'])
-def get_schema():
-    basedir = os.path.abspath(os.path.dirname(__file__))
-    schema_path = os.path.join(basedir, app.config['schema_path'])
+@app.route('/api/v1/getiotschema', methods=['GET'])
+def get_iot_schema():
     try:
-        with open(schema_path, 'r') as json_file:
-            schema = json.load(json_file)
+        schema = get_schema() # TODO better pattern to do this
     except FileNotFoundError:
         return render_template('error_schema.html') #TODO add return error code
     return render_template('schema.html', schema=schema)

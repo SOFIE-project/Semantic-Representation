@@ -1,0 +1,7 @@
+schema_path: static/semantic.json
+iot_schema_path: static/W3C_IoT_ThingDescription_schema.json
+error_messages_path: error_messages.json
+secret_key: 'your-secret'
+host: 0.0.0.0
+port: 5000
+debug: True
