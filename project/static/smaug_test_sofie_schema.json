@@ -1,52 +1,49 @@
 {
-    "@context": ["https://www.w3.org/2019/wot/td/v1"],
-    "@type" : "ThingTemplate",
-    "title": "Smart Locker",
-    "description" : "Smart Locker",
-    "securityDefinitions": {
-        "bearer_sc": {
-            "description": "bearer token available to locker renter",
-            "in": "header",
-            "scheme": "bearer",
-            "format": "jwt",
-            "alg": "ES256"
-        }
-    },
-    "security": ["bearer_sc"],
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "$id": "http://smaugexample.com/schema.json",
+    "title": "SMAUG data model schema",
+    "type": "object",
     "properties": {
-        "status": {
-            "description" : "textual description of the locker state (locked|unlocked|unknown)",
-            "type": "string",
-            "readOnly": true,
-            "forms": [{"href": "//api/status"}]
+      "lockerId": {
+        "description": "The unique identifier of the locker",
+        "type": "integer"
+      },
+      "smartContractAdds": {
+        "description": "The smart contract address binded to the locker",
+        "type":"string"
+      },
+      "authServiceUrl": {
+        "description": "The authorization server url",
+        "type": "string"
+      },
+      "price": {
+        "description": "The price for the locker",
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 50
+      },
+      "volume":{
+        "description": "The volume of the locker in cc",
+        "type": "integer",
+        "minimum": 0
+      },
+      "location":{
+        "type":"object",
+        "description": "The latitude and longitude of the locker in degrees",
+        "properties": {
+          "latitude":{
+            "type":"number",
+            "minimum": -90,
+            "maximum": 90
+          },
+          "longitude":{
+            "type":"number",
+            "minimum": -180,
+            "maximum": 180
+          }
         },
-        "locked": {
-            "description": "state of the lock on the locker (0 = unlocked, 1 = locked, null = unknown)",
-            "type": "boolean",
-            "readOnly": true,
-            "forms": [{"href": "//api/status/locked"}]
-        }
+        "required": ["latitude", "longitude"]
+      }  
     },
-    "actions": {
-        "lock": {
-            "description" : "lock the locker",
-            "forms": [{"href": "//api/action/lock"}]
-        },
-        "unlock": {
-            "description" : "unlock the locker",
-            "forms": [{"href": "//api/action/unlock"}]
-        }
-    },
-    "events": {
-        "locked": {
-            "description" : "locker has been locked",
-            "data": {"timestamp": "dateTime"},
-            "forms": [{"href": "//api/events"}]
-        },
-        "unlocked": {
-            "description" : "locker has been unlocked",
-            "data": {"timestamp": "dateTime"},
-            "forms": [{"href": "//api/events"}]
-        }
-    }
-}
+    "required": ["lockerId", "price", "volume"]
+  }

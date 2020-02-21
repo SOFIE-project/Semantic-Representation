@@ -1,12 +1,9 @@
-import os
 import unittest
 
 from project import app
 
+
 class BasicTests(unittest.TestCase):
-    ############################
-    #### setup and teardown ####
-    ############################
 
     # Execute prior to each test
     def setUp(self):
@@ -14,8 +11,7 @@ class BasicTests(unittest.TestCase):
 
     def tearDown(self):
         pass
- 
- 
+
+
 if __name__ == "__main__":
     unittest.main()
-

@@ -8,3 +8,6 @@ container_reset.sh
 
 # Variables
 app/static/*
+
+#IDE
+.idea

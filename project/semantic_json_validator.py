@@ -7,21 +7,20 @@ from project import app
 def validate_semantic(json_to_validate):
     validation_results = {'validation': True, 'error': None}
     try:
-        # First validate against IoT TD general schema
-        validate_schema(json_to_validate, app.config['IOT_SCHEMA_PATH'])
-        #Second validate against application proprietary schema 
-        validate_schema(json_to_validate, app.config['SCHEMA_PATH'])
+        iot_schema = json.loads(open(app.config['IOT_SCHEMA_PATH']).read())
+        validate_schema(json_to_validate, iot_schema)
     except FileNotFoundError:
         validation_results['validation'] = False
         validation_results['error'] = 'schema_not_found'
-    except jsonschema.exceptions.ValidationError as schema_error:
+    except (jsonschema.exceptions.SchemaError, jsonschema.exceptions.ValidationError) as validation_error:
         validation_results['validation'] = False
-        validation_results['error'] = schema_error 
+        validation_results['error'] = validation_error 
     return validation_results
 
-def validate_schema(json_to_validate, schema_path):
+def validate_schema(json_to_validate, schema):
     try:
-        schema = json.loads(open(schema_path).read())
+        print('JSON to validate: \n', json_to_validate)
+        print('TD schema: \n', schema)
         jsonschema.validate(instance=json_to_validate, schema=schema)
-    except (FileNotFoundError, jsonschema.exceptions.ValidationError):
+    except (jsonschema.exceptions.SchemaError, jsonschema.exceptions.ValidationError):
         raise

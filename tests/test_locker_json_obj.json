@@ -1,0 +1,8 @@
+{
+    "actions": {
+        "lock": {
+            "description" : "lock the locker",
+            "forms": [{"href": "//api/action/lock"}]
+        }
+    }
+}
