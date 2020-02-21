@@ -1,4 +1,4 @@
-schema_path: static/semantic.json
+schema_path: static/smaug_test_sofie_schema.json
 iot_schema_path: static/W3C_IoT_ThingDescription_schema.json
 error_messages_path: error_messages.json
 secret_key: 'your-secret'

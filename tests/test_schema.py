@@ -1,7 +1,10 @@
 import jsonschema
 import json
+import sys
 
-from project.semantic_json_validator import validate_schema
+sys.path.append(".")  # Adds higher directory to python modules path.
+
+from project import semantic_json_validator
 
 
 def test_json_validation_schema():
@@ -10,7 +13,7 @@ def test_json_validation_schema():
     # rovio_schema = json.loads(open('project/static/rovio_test_sofie_schema.json').read())
     # smaug_obj = json.loads(open('project/static/smaug_locker_td.json').read())
     try:
-        validate_schema(smaug_schema, iot_schema)
+        semantic_json_validator.validate_schema(smaug_schema, iot_schema)
         # semantic_json_validator.validate_schema(smaug_schema, iot_schema)
         # semantic_json_validator.validate_schema(rovio_schema, iot_schema)
     except jsonschema.exceptions.ValidationError as error:
