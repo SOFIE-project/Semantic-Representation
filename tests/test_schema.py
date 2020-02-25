@@ -30,6 +30,13 @@ class ValidatorTestClass(unittest.TestCase):
         self.assertRaises(jsonschema.exceptions.ValidationError, semantic_json_validator.validate_schema,
                           smaug_obj_invalid_volume, smaug_schema)
 
+    def test_validate_semantic(self):
+        invalid_semantic = json.loads('{"username":"xyz","password":"xyz"}')
+        smaug_obj_valid = json.loads(open('project/static/smaug_locker_valid_obj.json').read())
+        schema_not_found = json.loads('{"validation": "False","error":"Server Error - schema not found"}')
+        self.assertEqual(semantic_json_validator.validate_semantic(smaug_obj_valid), True)
+
+
 
 # runs the unit tests in the module
 if __name__ == '__main__':

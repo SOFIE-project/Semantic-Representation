@@ -1,4 +1,4 @@
 #!/bin/bash
-pip3 install -r /var/app/requirements.txt
+pip3 install -r /var/project/requirements.txt
  
-python3 run.py
+python3 /var/run.py

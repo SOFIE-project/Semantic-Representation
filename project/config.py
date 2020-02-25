@@ -14,4 +14,4 @@ class Config(object):
     DEBUG = yaml_config['debug']
     SCHEMA_PATH = yaml_config['schema_path']
     IOT_SCHEMA_PATH = yaml_config['iot_schema_path']
-    ERROR_MESSAGES_PATH = yaml_config['error_messages_path']
+    ERROR_MSG_PATH = 'static/custom_msg.yaml'

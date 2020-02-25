@@ -1,30 +1,126 @@
-# Semantic Representation Component
+# SOFIE Semantic Representation component
 
-Semantic representation (SR) is a mechanism for describing the data model and the services of IoT devices. It defines a common representation model for IoT Things devices, their services and their data, which enables interoperability and automation in the deployment of services and applications on top of federated IoT environments.
+**Table of contents:**
 
-The Semantic Representation component is a logical component that can be implemented as part of other components to define the data and service models of an IoT system. The sematic represetation of this component is based on the Thing Description (TD) of W3T Web of Things (WoT) standards. A TD can be considered a standardized syntax to describe the interaction, the data schema, the metadata and the links of IoT devices or groups of devices.
+- [Description](#description)
+    - [Architecture Overview](#architecture-overview)
+    - [Main Concepts](#main-concepts)
+    - [Relation with SOFIE](#relation-with-sofie)
+    - [Key Technologies](#key-technologies)
 
-## How to write an SR with WoT TD
+- [Usage](#usage)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Configuration](#configuration)
+    - [Execution](#execution)
 
-The TD is a json file which resides in the IoT device's file system or in a device which will act as an entry point of an IoT system. This file is read by any external entity or a system to understand how the IoT device could be used.
+- [Testing](#testing)
+    - [Environment](#environment)
+    - [Running the tests](#running-the-tests)
+    - [Evaluating the results](#evaluating-the-results)
 
-A TD instance has four main components:
+- [Integration](#integration)
+- [Deployment](#deployment)
+- [Open and Known Issues](#known-and-open-issues)
+- [Contact Info](#contact-info)
 
-1. Textual metadata about the Thing itself
-2. Interaction Affordances that indicate how the Thing can be used and how actors can interact with the Thing.
-3. Schemas for the machine-readable data exchanged with the Thing, describing the data format used.
-4. Links that express any formal or informal relationships with other Things or documents on the Web.
 
-Below is a picture of the TD file used in the pilot:
-![Discovery and Provisioning TD](docs/img/TD-structure-explanation-2.png "Rovio TD")
+## Description
 
-When creating a TD is important to understand what the IoT device can do and the data type it can handle and share. Then the json file is built accordingly.
-The list of standardized syntax can be found at: [WoT Thing Description](https://www.w3.org/TR/wot-thing-description/). Additional sintaxes can be added to the TD through the TD context extension, as shown in the figure above.
+The SOFIE Semantic Representation component is a validator for the data coming from the IoT devices to the SOFIE enabled platform. 
+The validator checks if the data are conform to the schema, if they are not the component informs the IoT platform with a message explaining the error 
 
-## How to read a SR with WoT TD
+### Relation with SOFIE
 
-The common situation when using TD is when there is an IoT Device ("the Thing") exposing the TD and another device or system which needs to read the Thing TD ("the consumer"). The Thing is a device or a system of devices which can perform actions or share data. The consumer is a device or a system that can communicate with the Thing, reads the Thing's properties and interact with it.
+The Semantic Representation component is standalone, it may be used by other SOFIE components and applications as necessary.
 
-![High-level architecture of Consumer and Thing](docs/img/servient-consumer-thing.svg "Consumer-Thing")
+## Architecture Overview
 
-Reading a TD is an operation that can be done following the WoT standard guidelines or creating an ad-hoc solution. The WoT standard imposes the creation of a component, the Servient, which includes scripts that can read the TD and understand the behaviour of the IoT devices. an Ad-hoc solution is what has been done in this Pilot, so the consumer's scripts are created knowing already the behaviour of the TD and not all the requirement of WoT standards are fulfilled. The second approach is quicker to implement, but it is less reusable.
+This chapter shows different views to explain the component architecture
+
+###Object Flow View
+
+![Alt text](/docs/img/object-flow.jpg "Object flow")
+
+| Name                   | Description                                                                                                                                                                                                                                                                 |
+|------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| IoT Silos              | This element represents an external stakeholder’s composition of IoT devices. They offer functionalities to external users and can be considered like a siloed platform which wants to join a SOFIE enabled platform                                                        |
+| SOFIE enabled platform | This is can be considered like a project which is built with the SOFIE framework                                                                                                                                                                                            |
+| IoT Silos Data Model   | The data model of the IoT Silos. The SOFIE enabled platform cannot understand this data model                                                                                                                                                                               |
+| Federation adapter     | The element is optional, but it translates the IoT silos Data Model into an object which can be used by a SOFIE enabled platform                                                                                                                                            |
+| Not Validated SR obj   | This object can be the output of the Federation Adapter or it can be created in any way by the IoT silos owner. It describes the data of the IoT Silos in a structure understandable by the SOFIE enabled platform.                                                         |
+| SR component           | This component takes in input an object and return an object which is compliant with the SOFIE enabled platform semantic rules                                                                                                                                              |
+| SR Thing Description   | This is the schema supported by the SOFIE enabled platform. Each platform implementation has a different schema, it should be sent to the SR Component as a parameter and can be updated during the SR Component lifetime. It is used to validate the object from IoT Silos |
+| SR linter              | This is a sub-component of the Semantic Representation. It validates the object in input with the schema found in the SR Thing Description. If everything is good, it returns a validated object                                                                            |
+| Validated SR obj       | The result of the SR linter. Is an object which contains the data of the IoT silos in a structure understandable by the SOFIE enabled platform and its components                                                                                                           |
+
+#### Objects Example
+| Thing description                                  |
+|----------------------------------------------------|
+| ![Alt text](/docs/img/ThingDescriptionExample.png) |
+
+| Valid SR object                          | Not valid SR object                         |
+|------------------------------------------|---------------------------------------------|
+| ![Alt text](/docs/img/validTDobject.png) | ![Alt text](/docs/img/NotValidSRobject.png) |
+
+### Sequence diagram
+![Alt text](/docs/img/sequence_diagram.png)
+
+## Main Decisions
+
+| Docker image os  | Alpine 3.7 | Widely used os for docker containers           |
+|------------------|------------|------------------------------------------------|
+| API              | Rest       | A lightweight and widely used API architecture |
+| Message protocol | Https      | Dependent on the API choice                    |
+| Data schema      | W3C WoT-TD | Dependent on SR component requirements         |
+| Data input       | JSON       | Easy to handle with the chosen Data schema     |
+
+### Key Technologies
+
+The software modules are implemented in **Python**.
+
+## Usage
+
+The component is handle as a dockerized webservice 
+
+### Prerequisites
+
+Docker and docker-compose
+
+### configuration
+
+
+
+### Execution
+
+docker-compose up
+
+## Testing
+
+The `test/` directory contains the scripts to unit test the software modules of the component.
+
+### Running the tests
+
+Read the README in [the testing directory](/tests/README.md) for pytest tests and test structure.
+
+### Evaluating the results
+
+At the current state of the implementation, no particular results are logged after the tests.
+
+## Integration
+
+At the current state of the implementation, there is no continuous integration support.
+
+## Deployment 
+
+At the current state of the implementation, there is no continuous deployment support.
+
+## Known and Open issues
+
+## Contact Info
+
+filippo.vimini@aalto.fi
+
+## License
+
+This component is licensed under the Apache License 2.0.

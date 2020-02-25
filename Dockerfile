@@ -1,7 +1,7 @@
  
 FROM python:3.7-alpine
 
-LABEL Author=filippo.vimini@ericsson.com
+LABEL Author=filippo.vimini@aalto.com
 
 WORKDIR /project
 
