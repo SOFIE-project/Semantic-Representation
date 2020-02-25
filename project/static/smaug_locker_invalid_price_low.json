@@ -1,0 +1,11 @@
+{
+  "lockerId": 123,
+  "price": -5,
+  "volume": 156,
+  "junction": {
+        "unlock": {
+            "description" : "unlock the locker",
+            "forms": 21312
+        }
+    }
+}
