@@ -4,18 +4,15 @@
 
 - [Description](#description)
     - [Architecture Overview](#architecture-overview)
-    - [Main Concepts](#main-concepts)
     - [Relation with SOFIE](#relation-with-sofie)
     - [Key Technologies](#key-technologies)
 
 - [Usage](#usage)
     - [Prerequisites](#prerequisites)
-    - [Installation](#installation)
     - [Configuration](#configuration)
     - [Execution](#execution)
 
 - [Testing](#testing)
-    - [Environment](#environment)
     - [Running the tests](#running-the-tests)
     - [Evaluating the results](#evaluating-the-results)
 
@@ -40,7 +37,7 @@ This chapter shows different views to explain the component architecture
 
 ###Object Flow View
 
-![Alt text](/docs/img/object-flow.jpg "Object flow")
+![Alt text](docs/img/object-flow.jpg "Object flow")
 
 | Name                   | Description                                                                                                                                                                                                                                                                 |
 |------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -57,14 +54,14 @@ This chapter shows different views to explain the component architecture
 #### Objects Example
 | Thing description                                  |
 |----------------------------------------------------|
-| ![Alt text](/docs/img/ThingDescriptionExample.png) |
+| ![Thing Description](docs/img/ThingDescriptionExample.png) |
 
 | Valid SR object                          | Not valid SR object                         |
 |------------------------------------------|---------------------------------------------|
-| ![Alt text](/docs/img/validTDobject.png) | ![Alt text](/docs/img/NotValidSRobject.png) |
+| ![Valid obj](docs/img/validTDobject.png) | ![Not valid obj](docs/img/NotValidSRobject.png) |
 
 ### Sequence diagram
-![Alt text](/docs/img/sequence_diagram.png)
+![Sequence Diagram](docs/img/sequence_diagram.png)
 
 ## Main Decisions
 
@@ -89,7 +86,18 @@ Docker and docker-compose
 
 ### configuration
 
+When the docker image starts the components search for these files in the project/static/ folder:
 
+* config.yaml
+
+config.yaml must contains these parameters:
+
+* schema_path: path of the custom schema
+* iot_schema_path: path of the standard schema (e.g. W3C ThingDescription)
+* secret_key: 'your-secret'
+* host: component host addr
+* port: component host port
+* debug: True or False
 
 ### Execution
 
@@ -101,7 +109,7 @@ The `test/` directory contains the scripts to unit test the software modules of 
 
 ### Running the tests
 
-Read the README in [the testing directory](/tests/README.md) for pytest tests and test structure.
+python3 tests/test_schema.py
 
 ### Evaluating the results
 
