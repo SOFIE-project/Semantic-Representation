@@ -7,7 +7,7 @@ container_reset.sh
 *.swp
 
 # Variables
-app/static/*
+project/static/*
 
 #IDE
 .idea

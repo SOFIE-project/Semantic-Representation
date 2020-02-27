@@ -1,2 +1,0 @@
-schema_not_found: Server Error - schema not found
-valid_json: "{'success': True}), 200, {'ContentType': 'application/json'}"
