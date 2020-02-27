@@ -1,17 +1,23 @@
 from flask import Flask
 from .config import Config
+from .manage_schema import ManageSchema
+
 import os
-import yaml
+import sys
 
 app = Flask(__name__)
 # Add default configuration to app
 app.config.from_object(Config)
 
-# Add error messages and schema
-root_dir = os.path.abspath(os.path.dirname(__file__))
-custom_msg_path = os.path.join(root_dir, app.config['ERROR_MSG_PATH'])
-schema_path = os.path.join(root_dir, app.config['SCHEMA_PATH'])
-app.custom_msg = yaml.load(open(custom_msg_path, 'r'), Loader=yaml.FullLoader)  # ToDo remember the init tests to assure all files are inplace
-app.schema = yaml.load(open(schema_path, 'r'), Loader=yaml.FullLoader)
+# Add schemas to app
+try:
+    manageSchema = ManageSchema(app.config['SCHEMA_PATH'], app.config['IOT_SCHEMA_PATH'])
+except FileNotFoundError as err:
+    print(err)
+    print("Mandatory files missing")
+    sys.exit(os.EX_SOFTWARE)
+
+app.custom_schema = manageSchema.get_custom_schema_json()
+app.standard_schema = manageSchema.get_standard_schema_json()
 
 from project import routes
