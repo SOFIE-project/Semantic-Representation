@@ -3,29 +3,28 @@
 **Table of contents:**
 
 - [Description](#description)
-    - [Architecture Overview](#architecture-overview)
-    - [Relation with SOFIE](#relation-with-sofie)
-    - [Key Technologies](#key-technologies)
+  - [Architecture Overview](#architecture-overview)
+  - [Relation with SOFIE](#relation-with-sofie)
+  - [Key Technologies](#key-technologies)
 
 - [Usage](#usage)
-    - [Prerequisites](#prerequisites)
-    - [Configuration](#configuration)
-    - [Execution](#execution)
+  - [Prerequisites](#prerequisites)
+  - [Configuration](#configuration)
+  - [Execution](#execution)
 
 - [Testing](#testing)
-    - [Running the tests](#running-the-tests)
-    - [Evaluating the results](#evaluating-the-results)
+  - [Running the tests](#running-the-tests)
+  - [Evaluating the results](#evaluating-the-results)
 
 - [Integration](#integration)
 - [Deployment](#deployment)
 - [Open and Known Issues](#known-and-open-issues)
 - [Contact Info](#contact-info)
 
-
 ## Description
 
 The SOFIE Semantic Representation component is a validator for the data coming from the IoT devices to the SOFIE enabled platform. 
-The validator checks if the data are conform to the schema, if they are not the component informs the IoT platform with a message explaining the error 
+The validator checks if the data are conform to the schema, if they are not the component informs the IoT platform with a message explaining the error.
 
 ### Relation with SOFIE
 
@@ -35,7 +34,7 @@ The Semantic Representation component is standalone, it may be used by other SOF
 
 This chapter shows different views to explain the component architecture
 
-###Object Flow View
+### Object Flow View
 
 ![Alt text](docs/img/object-flow.jpg "Object flow")
 
@@ -52,6 +51,7 @@ This chapter shows different views to explain the component architecture
 | Validated SR obj       | The result of the SR linter. Is an object which contains the data of the IoT silos in a structure understandable by the SOFIE enabled platform and its components                                                                                                           |
 
 #### Objects Example
+
 | Thing description                                  |
 |----------------------------------------------------|
 | ![Thing Description](docs/img/ThingDescriptionExample.png) |
@@ -61,6 +61,7 @@ This chapter shows different views to explain the component architecture
 | ![Valid obj](docs/img/validTDobject.png) | ![Not valid obj](docs/img/NotValidSRobject.png) |
 
 ### Sequence diagram
+
 ![Sequence Diagram](docs/img/sequence_diagram.png)
 
 ## Main Decisions
@@ -86,18 +87,20 @@ Docker and docker-compose
 
 ### configuration
 
-When the docker image starts the components search for these files in the project/static/ folder:
+When the docker image starts the components search for these files in the <b>project/static/</b> folder:
 
-* config.yaml
+- config.yaml
 
 config.yaml must contains these parameters:
 
-* schema_path: path of the custom schema
-* iot_schema_path: path of the standard schema (e.g. W3C ThingDescription)
-* secret_key: 'your-secret'
-* host: component host addr
-* port: component host port
-* debug: True or False
+```
+schema_path: path of the custom schema
+iot_schema_path: path of the standard schema (e.g. W3C ThingDescription)
+secret_key: 'your-secret'
+host: component host addr
+port: component host port
+debug: True or False
+```
 
 ### Execution
 

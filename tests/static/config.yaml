@@ -1,4 +1,4 @@
-schema_path: static/smaug_test_sofie_schema.json
+schema_path: static/custom_schema.json
 iot_schema_path: static/W3C_IoT_ThingDescription_schema.json
 secret_key: 'your-secret'
 host: 0.0.0.0

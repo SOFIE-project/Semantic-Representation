@@ -4,7 +4,7 @@ import yaml
 
 class Config(object):
     ROOT_DIR = os.path.abspath(os.path.dirname(__file__))
-    CONFIG_PATH = os.path.join(ROOT_DIR, 'static/config.yaml')
+    CONFIG_PATH = os.path.join(ROOT_DIR, 'config.yaml')
     yaml_config = yaml.load(open(CONFIG_PATH, 'r'), Loader=yaml.FullLoader)
 
     # Config binding to app variable for separation
