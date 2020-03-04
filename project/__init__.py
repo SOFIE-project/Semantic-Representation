@@ -11,13 +11,12 @@ app.config.from_object(Config)
 
 # Add schemas to app
 try:
-    manageSchema = ManageSchema(app.config['SCHEMA_PATH'], app.config['IOT_SCHEMA_PATH'])
+    manageSchema = ManageSchema(app.config['SCHEMA_PATH'])
 except FileNotFoundError as err:
     print(err)
     print("Mandatory files missing")
     sys.exit(os.EX_SOFTWARE)
 
 app.custom_schema = manageSchema.get_custom_schema_json()
-app.standard_schema = manageSchema.get_standard_schema_json()
 
 from project import routes

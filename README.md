@@ -66,12 +66,12 @@ This chapter shows different views to explain the component architecture
 
 ## Main Decisions
 
-| Docker image os  | Alpine 3.7 | Widely used os for docker containers           |
-|------------------|------------|------------------------------------------------|
-| API              | Rest       | A lightweight and widely used API architecture |
-| Message protocol | Https      | Dependent on the API choice                    |
-| Data schema      | W3C WoT-TD | Dependent on SR component requirements         |
-| Data input       | JSON       | Easy to handle with the chosen Data schema     |
+| Decision         | Technology   | Description                                    |
+|------------------|------------  |------------------------------------------------|
+| Docker image os  | Ubuntu 18.04 | Easy to handle with the chosen Data schema     |
+| API              | Rest         | A lightweight and widely used API architecture |
+| Data schema      | W3C WoT-TD   | Dependent on SR component requirements         |
+| Data input       | JSON         | Easy to handle with the chosen Data schema     |
 
 ### Key Technologies
 
@@ -95,39 +95,214 @@ config.yaml must contains these parameters:
 
 ```
 schema_path: path of the custom schema
-iot_schema_path: path of the standard schema (e.g. W3C ThingDescription)
+iot_schema_path: the default is 'static/W3C_IoT_ThingDescription_schema.json'
 secret_key: 'your-secret'
 host: component host addr
 port: component host port
 debug: True or False
 ```
+<b>N.B.</b> The Dockerfile and the docker-config.yaml file must be update with the port number used in the config.yaml file
+
+#### Defining a schema
+
+The essential file needed for the component to start is the schema.
+
+The schema is a JSON schema which follows the W3C TD schema structure and properties. 
+
+To check if the schema meets the W3C TD standards please use the specific test 
+(Description of the tests in the chapter [Testing](#testing))  
 
 ### Execution
+- docker-compose build
+- docker-compose up
 
-docker-compose up
+### Output
+
+The component produce an outputs when a JSON object is sent to the component:
+
+If a Valid JSON object is sent the response will be JSON with the tuple status: "success" and the data key with empty value 
+```
+{'status': 'success', 'data': 'null'}
+```
+
+If an invalid JSON object is sent the response will be a JSON
+with the tuple status: "fail" and the information about the error
+and the component schema as value of the data key. Example below:
+
+```
+{
+    "status": "fail",
+    "data": {
+        "message": "'lockerId' is a required property",
+        "schema": {
+            "$id": "http://smaugexample.com/schema.json",
+            "$schema": "http://json-schema.org/draft-07/schema#",
+            "@context": [
+                "https://www.w3.org/2019/wot/td/v1"
+            ],
+            "properties": {
+                "authServiceUrl": {
+                    "description": "The authorization server url",
+                    "forms": [
+                        {
+                            "href": "//api/status"
+                        }
+                    ],
+                    "type": "string"
+                },
+                "location": {
+                    "description": "The latitude and longitude of the locker in degrees",
+                    "forms": [
+                        {
+                            "href": "//api/status"
+                        }
+                    ],
+                    "properties": {
+                        "latitude": {
+                            "forms": [
+                                {
+                                    "href": "//api/status"
+                                }
+                            ],
+                            "maximum": 90,
+                            "minimum": -90,
+                            "type": "number"
+                        },
+                        "longitude": {
+                            "forms": [
+                                {
+                                    "href": "//api/status"
+                                }
+                            ],
+                            "maximum": 180,
+                            "minimum": -180,
+                            "type": "number"
+                        }
+                    },
+                    "required": [
+                        "latitude",
+                        "longitude"
+                    ],
+                    "type": "object"
+                },
+                "lockerId": {
+                    "description": "The unique identifier of the locker",
+                    "forms": [
+                        {
+                            "href": "//api/status"
+                        }
+                    ],
+                    "type": "integer"
+                },
+                "price": {
+                    "description": "The price for the locker",
+                    "forms": [
+                        {
+                            "href": "//api/status"
+                        }
+                    ],
+                    "maximum": 50,
+                    "minimum": 0,
+                    "type": "integer"
+                },
+                "smartContractAdds": {
+                    "description": "The smart contract address of the locker",
+                    "forms": [
+                        {
+                            "href": "//api/status"
+                        }
+                    ],
+                    "type": "string"
+                },
+                "volume": {
+                    "description": "The volume of the locker in cc",
+                    "forms": [
+                        {
+                            "href": "//api/status"
+                        }
+                    ],
+                    "minimum": 0,
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "lockerId",
+                "price",
+                "volume"
+            ],
+            "security": [
+                "bearer_sc"
+            ],
+            "securityDefinitions": {
+                "bearer_sc": {
+                    "alg": "ES256",
+                    "description": "bearer token available to locker renter",
+                    "format": "jwt",
+                    "in": "header",
+                    "scheme": "bearer"
+                }
+            },
+            "title": "SMAUG data model schema",
+            "type": "object"
+        }
+    }
+}
+```
 
 ## Testing
 
-The `test/` directory contains the scripts to unit test the software modules of the component.
+The `test/` directory contains the scripts to unit test the software modules of the component. 
+To perform functional tests you must create 2 files:
+- tests/static/custom_valid_requests.json
+- tests/static/custom_invalid_requests.json
+
+The first file must contains the valid JSON objects, based on the schema (config.yaml -> schema_path). 
+
+The second file must contain the not valid JSON objects, based on the schema (config.yaml -> schema_path).
+
+Examples are in:
+- tests/static/default_valid_requests.json
+- tests/static/default_invalid_requests.json
 
 ### Running the tests
 
-python3 tests/test_schema.py
+The first test file performs UNIT tests on the validation function:
+
+```
+python3 tests/test_validation.py
+```
+
+The second test file performs POST requests using as input the JSON object in the file created in the previous chapter.
+
+```
+python3 tests/test_requests.py
+```
+<b>NB</b> RUN the component before stating the SECOND test
+
+The third test file is used to check that the custom schema (config.yaml -> schema_path) created ad-hoc 
+for the specific use of this component is congruent with the W3C TD standard.
+
+```
+test_custom_schema_validation.py
+```
+The test return "valid" if the custom schema is congruent with the W3C TD standard. 
+Otherwise it return an error messages with the description of the problems
 
 ### Evaluating the results
 
-At the current state of the implementation, no particular results are logged after the tests.
+At the current state of the implementation§ no particular results are logged after the tests.
 
 ## Integration
 
-At the current state of the implementation, there is no continuous integration support.
+At the current state of the implementation there is no continuous integration support.
 
 ## Deployment 
 
-At the current state of the implementation, there is no continuous deployment support.
+At the current state of the implementation there is no continuous deployment support.
 
 ## Known and Open issues
-
+ 
+ 
 ## Contact Info
 
 filippo.vimini@aalto.fi

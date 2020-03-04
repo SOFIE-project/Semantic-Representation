@@ -20,8 +20,9 @@ class FunctionalTestClass(unittest.TestCase):
         url = 'http://'+str(app.config['HOST'])+':'+str(app.config['PORT'])+'/api/v1/validate'
 
         for x in valid_jsons:
-            res = json.loads(requests.post(url, json=x, headers={}).text)
-            self.assertEqual("success", res['status'])
+            res = requests.post(url, json=x, headers={})
+            self.assertEqual("success", json.loads(res.text)['status'])
+            self.assertEqual(200, res.status_code)
 
     def test_invalid_requests(self):
         try:
@@ -32,8 +33,9 @@ class FunctionalTestClass(unittest.TestCase):
         url = 'http://'+str(app.config['HOST'])+':'+str(app.config['PORT'])+'/api/v1/validate'
 
         for x in invalid_jsons:
-            res = json.loads(requests.post(url, json=x, headers={}).text)
-            self.assertEqual("fail", res['status'])
+            res = requests.post(url, json=x, headers={})
+            self.assertEqual("fail", json.loads(res.text)['status'])
+            self.assertEqual(400, res.status_code)
 
 
 if __name__ == '__main__':

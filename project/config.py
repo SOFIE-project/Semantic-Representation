@@ -13,4 +13,3 @@ class Config(object):
     PORT = yaml_config['port']
     DEBUG = yaml_config['debug']
     SCHEMA_PATH = yaml_config['schema_path']
-    IOT_SCHEMA_PATH = yaml_config['iot_schema_path']
