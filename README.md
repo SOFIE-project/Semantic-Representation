@@ -116,6 +116,14 @@ To check if the schema meets the W3C TD standards please use the specific test
 - docker-compose build
 - docker-compose up
 
+### API
+
+THe component can be reach by calling two API.
+
+Route <b>/api/v1/getschema</b>, can be called to get a json with the component's schema
+
+Route <b>/api/v1/validate</b>, the API take a JSON object as input and returns a JSON with the validation informations  
+
 ### Output
 
 The component produce an outputs when a JSON object is sent to the component:
