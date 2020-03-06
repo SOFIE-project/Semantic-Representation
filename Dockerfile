@@ -7,6 +7,8 @@ RUN apt-get update && apt-get install -y \
 
 LABEL Author=filippo.vimini@aalto.com
 
+COPY ./ /var/semantic-representation/
+
 WORKDIR /project
 
 EXPOSE 5000

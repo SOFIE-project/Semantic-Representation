@@ -112,10 +112,19 @@ The schema is a JSON schema which follows the W3C TD schema structure and proper
 To check if the schema meets the W3C TD standards please use the specific test 
 (Description of the tests in the chapter [Testing](#testing))  
 
-### Execution
+### Build and Execution
+
+The container can be build with docker-compose with the following:
+
 - docker-compose build
 - docker-compose up
 
+If needed you can build the container with Docker only:
+
+- docker build /"component Dockerfile folder"/ -t semantic-representation
+- docker run -p 5000:5000 -t semantic-representation
+
+<b>NB</b> update the ports in the Dockerfile, docker-compose file and config.yaml if needed.
 ### API
 
 THe component can be reach by calling two API.
