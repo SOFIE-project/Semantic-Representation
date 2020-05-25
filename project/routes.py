@@ -1,7 +1,22 @@
 from project import app
 import flask
 from .semantic_json_validator import validate_semantic
-from flask import request, render_template
+from flask import request
+
+
+@app.route('/api/v1/register', methods=['POST'])
+def register():
+    pass
+
+
+@app.route('/api/v1/add_schema', methods=['POST'])
+def add_schema():
+    pass
+
+
+@app.route('/api/v1/update_schema', methods=['POST'])
+def update_schema():
+    pass
 
 
 # REST API for validate JSON object
