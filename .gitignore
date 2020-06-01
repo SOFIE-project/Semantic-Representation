@@ -1,7 +1,7 @@
 # Python
 __pycache__
 */__pycache__
-env/
+
 
 # Database
 project/app.db
@@ -9,10 +9,7 @@ project/app.db
 # Linux tools
 container_reset.sh
 *.swp
-
-# Variables
-project/config.yaml
-project/custom_schema.json
+.env
 
 # IDE
 .idea
