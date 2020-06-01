@@ -1,8 +1,5 @@
 # !/usr/bin/env python
 import sys
-import unittest
-import json
-import requests
 sys.path.append(".")
 from project import create_app, db
 from config import Config

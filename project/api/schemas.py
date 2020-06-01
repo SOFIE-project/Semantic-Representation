@@ -44,14 +44,34 @@ def update_schema():
     schema = Schema.query.filter_by(name=data['name']).first()
     if schema is None:
         return bad_request('schema not found')
+
     schema.from_dict(data)
     db.session.commit()
     response = jsonify(schema.to_dict())
     response.status_code = 200
     return response
 
+
 @bp.route('/extend_schema', methods=['POST'])
 def extend_schema():
     pass
+
+
+@bp.route('/get_schema', methods=['POST'])
+def get_schema():
+    data = request.get_json() or {}
+    schemas_dict = {}
+    if 'name' not in data:
+        schemas = Schema.query.all()
+        for schema in schemas:
+            schemas_dict.update(schema.to_dict())
+    else:
+        schema = Schema.query.filter_by(name=data['name']).first()
+        if schema is None:
+            return bad_request('schema not found')
+        schemas_dict.update(schema.to_dict())
+    response = jsonify(schemas_dict)
+    response.status_code = 200
+    return response
 
 

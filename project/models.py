@@ -7,7 +7,7 @@ class Schema(db.Model):
     schema = db.Column(db.String(2048))
 
     def __repr__(self):
-        return '<Schema {}>'.format(self.schema_name)
+        return '<Schema {}>'.format(self.name)
 
     def from_dict(self, data):
         for field in ['name', 'schema']:
