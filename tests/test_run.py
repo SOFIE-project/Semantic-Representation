@@ -2,16 +2,7 @@
 import sys
 sys.path.append(".")
 from project import create_app, db
-from config import Config
-
-
-class TestConfig(Config):
-    TESTING = True
-    SQLALCHEMY_DATABASE_URI = 'sqlite://'
-    SQLALCHEMY_TRACK_MODIFICATIONS = False
-    DEBUG = True
-    HOST = '0.0.0.0'
-    PORT = '5000'
+from config import Config, TestConfig
 
 
 def server_startup():

@@ -57,6 +57,12 @@ def extend_schema():
     pass
 
 
+@bp.route('/get_schema/<int:id>', methods=['GET'])
+def get_schema2(id):
+    schema = Schema.query.get_or_404(id)
+    return jsonify(schema.schema)
+
+
 @bp.route('/get_schema', methods=['POST'])
 def get_schema():
     data = request.get_json() or {}

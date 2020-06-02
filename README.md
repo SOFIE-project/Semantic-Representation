@@ -87,30 +87,19 @@ Docker and docker-compose
 
 ### configuration
 
-When the docker image starts the components search for these files in the <b>project/static/</b> folder:
+Component configuration can be handled creating a file .env in the root of the component folder:
 
-- config.yaml
-
-config.yaml must contains these parameters:
+- .env:
 
 ```
-schema_path: path of the custom schema
-iot_schema_path: the default is 'static/W3C_IoT_ThingDescription_schema.json'
-secret_key: 'your-secret'
-host: component host addr
-port: component host port
-debug: True or False
+SECRET_KEY = '1234'
+HOST = 127.0.0.1
+PORT = 5000
+DEBUG = False
+DATABASE_URL = sqlite:///project/app.db
 ```
-<b>N.B.</b> The Dockerfile and the docker-config.yaml file must be update with the port number used in the config.yaml file
-
-#### Defining a schema
-
-The essential file needed for the component to start is the schema.
-
-The schema is a JSON schema which follows the W3C TD schema structure and properties. 
-
-To check if the schema meets the W3C TD standards please use the specific test 
-(Description of the tests in the chapter [Testing](#testing))  
+to further control the component configuration, the file config.py holds two classes that represent production and test
+ configuration 
 
 ### Build and Execution
 
@@ -126,12 +115,14 @@ If needed you can build the container with Docker only:
 
 <b>NB</b> update the ports in the Dockerfile, docker-compose file and config.yaml if needed.
 ### API
-
-THe component can be reach by calling two API.
-
-Route <b>/api/v1/getschema</b>, can be called to get a json with the component's schema
-
-Route <b>/api/v1/validate</b>, the API take a JSON object as input and returns a JSON with the validation informations  
+| HTTP Method | Resource URL         | Notes                   |
+|-------------|----------------------|-------------------------|
+| POST        | /api/add_schema      | Add new schema          |
+| POST        | /api/get_schema      | ToDO                    |
+| GET         | /api/get_schema/<id> | Return a schema         |
+| POST        | /api/remove_schema   | Remove a schema         |
+| POST        | /api/update_schema   | Updates a shema         |
+| POST        | /api/extend_schema   | Extend a schema context |
 
 ### Output
 
