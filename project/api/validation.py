@@ -27,6 +27,7 @@ def validate_task():
     if 'message' not in data or 'schema_name' not in data:
         return bad_request('must include message and schema name')
     schema = Schema.query.filter_by(name=data['schema_name']).first()
+    # ToDo error handling
     schema = ast.literal_eval(schema.schema)
     schema = json.loads(json.dumps(schema))
     instance = json.loads(json.dumps(data['message']))

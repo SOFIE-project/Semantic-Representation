@@ -13,7 +13,7 @@ basedir = os.path.abspath(os.path.dirname(__file__))
 staticdir = os.path.join(basedir, 'static/')
 
 
-class SchemaModelCase(unittest.TestCase):
+class SemanticRepresentationAPI(unittest.TestCase):
 
     def setUp(self):
         self.app = create_app(TestConfig)
@@ -56,12 +56,54 @@ class SchemaModelCase(unittest.TestCase):
         url = self.baseurl + '/api/remove_schema'
         remove_entry = requests.post(url, json=data)
 
+    '''
+    This function test the schema extension functionality. 
+    
+    The db is populated with a schema, then the test add a schema extension that refers to it and everything is expected
+     to work.
+    Then, the test tries to add a schema extension to a schema that does not exist in the db and the component is expect
+    to notify that the schema to be extended does not exist
+    '''
+    def test_api_add_extension(self):
+        url = self.baseurl + '/api/add_schema'
+
+        # Add schema to be extended
+        schema_name = self.schemas[0]['$id']
+        extended_schema = self.schemas[0]
+        data = {'name': schema_name, 'schema': extended_schema}
+        requests.post(url, json=data)
+
+        # Add valid schema extension
+        with open(os.path.join(staticdir + 'schema_extension.json')) as file:
+            schema_extension = json.loads(file.read())
+        data = {'name': schema_extension['$id'], 'schema': schema_extension, 'extended': schema_name}
+        response = requests.post(url, json=data)
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.text)['name'],
+                         schema_extension['$id'])
+        self.assertEqual(json.loads(response.text)['schema'],
+                         str(schema_extension))
+
+        # Add a not valid schema extension
+        data = {'name': 'new schema extension', 'schema': schema_extension, 'extended': 'I dont exist'}
+        response = requests.post(url, json=data)
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(json.loads(response.text)['message'],
+                         'Extended schema not in the DB')
+
+        # Clean the db for other tests
+        url = self.baseurl + '/api/remove_schema'
+        data = {'name': schema_name}
+        requests.post(url, json=data)
+        data = {'name': schema_extension['$id']}
+        requests.post(url, json=data)
+
     def test_api_update_schema(self):
         # Add entry
         data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
         url = self.baseurl + '/api/add_schema'
 
-        add_entry = requests.post(url, json=data)
+        requests.post(url, json=data)
 
         # Update schema
         data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[1]}
@@ -84,14 +126,14 @@ class SchemaModelCase(unittest.TestCase):
         # Remove entry
         data = {'name': self.schemas[0]['$id']}
         url = self.baseurl + '/api/remove_schema'
-        remove_entry = requests.post(url, json=data)
+        requests.post(url, json=data)
 
     def test_api_remove_schema(self):
         # Add entry
         data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
         url = self.baseurl + '/api/add_schema'
 
-        add_entry = requests.post(url, json=data)
+        requests.post(url, json=data)
 
         data = {'name': self.schemas[0]['$id']}
         url = self.baseurl + '/api/remove_schema'
@@ -130,7 +172,7 @@ class SchemaModelCase(unittest.TestCase):
         # Add first entry
         data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
         url = self.baseurl + '/api/add_schema'
-        add_entry = requests.post(url, json=data)
+        requests.post(url, json=data)
 
         # Add second entry
         data2 = {'name': self.schemas[1]['$id'], 'schema': self.schemas[1]}
@@ -151,13 +193,27 @@ class SchemaModelCase(unittest.TestCase):
 
         remove_schemas(self.baseurl + '/api/remove_schema', self.schemas)
 
+    '''def test_api_extend_schema(self):
+        url = self.baseurl + '/api/extend_schema'
+        with open(os.path.join(staticdir + 'schema_extension.json')) as file:
+            extension = json.loads(file.read())
+        extended_schema_name = self.schemas[0]['$id']
+        data = {'extension': extension, 'extended': extended_schema_name}
+        response = requests.post(url, json=data)
+        self.assertEqual(response.status_code, 200)
+
+        print(response.text)
+
+        # modify the text schema to be
+        remove_schemas(self.baseurl + '/api/remove_schema', [extension])'''
+
     def test_api_validate(self):
         # Add schema
         data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
         url = self.baseurl + '/api/add_schema'
-        add_entry = requests.post(url, json=data)
+        requests.post(url, json=data)
 
-        # validate
+        # validate msg on base schema
         url = self.baseurl + '/api/validate'
         for msg in self.valid_msg:
             data = {'message': msg, 'schema_name': self.schemas[0]['$id']}
@@ -170,6 +226,16 @@ class SchemaModelCase(unittest.TestCase):
             response_valid = requests.post(url, json=data)
             self.assertEqual(response_valid.status_code, 400)
 
+        # ToDo Validate msg on extended schema
+        # ToDo Add extended schema
+        with open(os.path.join(staticdir + 'schema_extension.json')) as file:
+            extension = json.loads(file.read())
+        with open(os.path.join(staticdir + 'extended_msg.json')) as file:
+            extension_mgs = json.loads(file.read())
+        data = {'message': extension_mgs, 'schema_name': extension['$id']}
+        url = self.baseurl + '/api/validate'
+        #response = requests.post(url, json=data)
+        # ToDo remove extended schema
         remove_schemas(self.baseurl + '/api/remove_schema', self.schemas)
 
 

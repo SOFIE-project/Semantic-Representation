@@ -39,7 +39,7 @@ def create_app(config=Config):
             app.logger.addHandler(file_handler)
 
         app.logger.setLevel(logging.INFO)
-        app.logger.info('Semantic Representation startup')
+        app.logger.info('Semantic Representat startup')
 
     return app
 

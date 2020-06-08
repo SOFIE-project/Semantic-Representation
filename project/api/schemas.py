@@ -12,6 +12,9 @@ def add_schema():
         return bad_request('must include schema and schema name')
     if Schema.query.filter_by(name=data['name']).first():
         return bad_request('schema name already saved')
+    if 'extended' in data:
+        if not Schema.query.filter_by(name=data['extended']).first():
+            return bad_request('Extended schema not in the DB')
     schema = Schema()
     schema.from_dict(data)
     db.session.add(schema)
@@ -50,11 +53,6 @@ def update_schema():
     response = jsonify(schema.to_dict())
     response.status_code = 200
     return response
-
-
-@bp.route('/extend_schema', methods=['POST'])
-def extend_schema():
-    pass
 
 
 @bp.route('/get_schema/<int:id>', methods=['GET'])
