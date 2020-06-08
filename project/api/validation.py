@@ -26,13 +26,24 @@ def validate_task():
     data = request.get_json() or {}
     if 'message' not in data or 'schema_name' not in data:
         return bad_request('must include message and schema name')
+    # ToDo recursive?
     schema = Schema.query.filter_by(name=data['schema_name']).first()
+    if schema is None:
+        return bad_request('schema not found')
+    if schema.extended is not None:
+        extension = Schema.query.filter_by(name=schema.extended).first()
+        if extension is None:
+            return bad_request('extension not found')
+        extension = json.loads(json.dumps(ast.literal_eval(extension.schema)))
+        instance = json.loads(json.dumps(data['message']))
+        try:
+            jsonschema.validate(instance=instance, schema=extension)
+        except (jsonschema.ValidationError, jsonschema.exceptions.SchemaError) as e:
+            return bad_request('not valid, ' + e.message)
     # ToDo error handling
     schema = ast.literal_eval(schema.schema)
     schema = json.loads(json.dumps(schema))
     instance = json.loads(json.dumps(data['message']))
-    if schema is None:
-        return bad_request('schema not found')
     try:
         jsonschema.validate(instance=instance, schema=schema)
     except (jsonschema.ValidationError, jsonschema.exceptions.SchemaError) as e:
@@ -40,6 +51,8 @@ def validate_task():
     response = jsonify({'message': 'valid'})
     response.status_code = 200
     return response
+
+
 
 
 

@@ -8,7 +8,7 @@ class Schema(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(MAX_NAME_LEN), unique=True)
     schema = db.Column(db.String(MAX_SCHEMA_LEN))
-    extension = db.Column(db.String(MAX_NAME_LEN), default='None')
+    extended = db.Column(db.String(MAX_NAME_LEN), default=None)
 
     def __repr__(self):
         return '<Schema {}>'.format(self.name)
@@ -23,6 +23,7 @@ class Schema(db.Model):
             'id': self.id,
             'name': self.name,
             'schema': self.schema,
+            'extended': self.extended
         }
         return data
 
