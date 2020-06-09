@@ -103,14 +103,7 @@ to further control the component configuration, the file config.py holds two cla
 
 ### Build and Execution
 
-The container can be build with docker-compose with the following:
-
-- docker-compose build
-- docker-compose up
-
-If needed you can build the container with Docker only:
-
-- docker build /"component Dockerfile folder"/ -t semantic-representation
+- docker build /"Dockerfile folder"/ -t semantic-representation
 - docker run -p 5000:5000 -t semantic-representation
 
 <b>NB</b> update the ports in the Dockerfile, docker-compose file and config.yaml if needed.

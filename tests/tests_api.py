@@ -1,6 +1,6 @@
 # !/usr/bin/env python
 from project import create_app, db
-from config import TestConfig
+from config import Config, TestConfig
 import sys
 import os
 import unittest
@@ -16,7 +16,7 @@ staticdir = os.path.join(basedir, 'static/')
 class SemanticRepresentationAPI(unittest.TestCase):
 
     def setUp(self):
-        self.app = create_app(TestConfig)
+        self.app = create_app(Config)
         self.baseurl = 'http://' + self.app.config['HOST'] + ':' + self.app.config['PORT']
         self.app_context = self.app.app_context()
         self.app_context.push()

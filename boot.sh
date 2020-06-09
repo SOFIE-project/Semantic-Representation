@@ -1,10 +1,13 @@
 #!/bin/bash
-pip3 install -r /var/semantic-representation/project/requirements.txt
 
-export Flask_APP=run.py
+export FLASK_APP=run.py
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
 
+cd /var/semantic-representation/
 flask db init
 flask db migrate -m "init table"
 flask db upgrade
 
-python3 /var/semantic-representation/run.py > /var/log/semantic_representation.log
+#python3 /var/semantic-representation/run.py > /var/log/semantic_representation.log
+python3 run.py
