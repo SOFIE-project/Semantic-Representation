@@ -3,8 +3,8 @@
 **Table of contents:**
 
 - [Description](#description)
-  - [Architecture Overview](#architecture-overview)
   - [Relation with SOFIE](#relation-with-sofie)
+  - [Architecture Overview](#architecture-overview)
   - [Key Technologies](#key-technologies)
 
 - [Usage](#usage)
@@ -83,7 +83,7 @@ The component is handle as a dockerized webservice
 
 ### Prerequisites
 
-Docker and docker-compose
+Docker
 
 ### configuration
 
@@ -106,189 +106,167 @@ to further control the component configuration, the file config.py holds two cla
 - docker build /"Dockerfile folder"/ -t semantic-representation
 - docker run -p 5000:5000 -t semantic-representation
 
-<b>NB</b> update the ports in the Dockerfile, docker-compose file and config.yaml if needed.
+<b>NB</b> update the ports in the Dockerfile, .env and config.py if needed.
 ### API
 | HTTP Method | Resource URL         | Notes                   |
 |-------------|----------------------|-------------------------|
 | POST        | /api/add_schema      | Add new schema          |
-| POST        | /api/get_schema      | ToDO                    |
-| GET         | /api/get_schema/<id> | Return a schema         |
+| POST        | /api/get_schema      | Return a schema         |
+| GET         | /api/get_schema/'id' | Return the schema with id = 'id'        |
 | POST        | /api/remove_schema   | Remove a schema         |
 | POST        | /api/update_schema   | Updates a shema         |
 | POST        | /api/extend_schema   | Extend a schema context |
 
-### Output
-
-The component produce an outputs when a JSON object is sent to the component:
-
-If a Valid JSON object is sent the response will be JSON with the tuple status: "success" and the data key with empty value 
+#### Add schema
+This endpoint us used to add a schema in the SR component db. The schemas are identified by name which must be unique.
+The component will notify is the schema is already saved in the db. e.g. 
 ```
-{'status': 'success', 'data': 'null'}
+data = {'name': 'schema_name', 'schema': schema}
+requests.post(url, json=data)
 ```
 
-If an invalid JSON object is sent the response will be a JSON
-with the tuple status: "fail" and the information about the error
-and the component schema as value of the data key. Example below:
-
+If a schema extension is added then
 ```
+data = {'name': 'extension name', 'schema': 'schema', 'extended': 'extended schema name'}
+requests.post(url, json=data)
+```
+
+on success the route respond 
+```
+Status code: 200
+
 {
-    "status": "fail",
-    "data": {
-        "message": "'lockerId' is a required property",
-        "schema": {
-            "$id": "http://smaugexample.com/schema.json",
-            "$schema": "http://json-schema.org/draft-07/schema#",
-            "@context": [
-                "https://www.w3.org/2019/wot/td/v1"
-            ],
-            "properties": {
-                "authServiceUrl": {
-                    "description": "The authorization server url",
-                    "forms": [
-                        {
-                            "href": "//api/status"
-                        }
-                    ],
-                    "type": "string"
-                },
-                "location": {
-                    "description": "The latitude and longitude of the locker in degrees",
-                    "forms": [
-                        {
-                            "href": "//api/status"
-                        }
-                    ],
-                    "properties": {
-                        "latitude": {
-                            "forms": [
-                                {
-                                    "href": "//api/status"
-                                }
-                            ],
-                            "maximum": 90,
-                            "minimum": -90,
-                            "type": "number"
-                        },
-                        "longitude": {
-                            "forms": [
-                                {
-                                    "href": "//api/status"
-                                }
-                            ],
-                            "maximum": 180,
-                            "minimum": -180,
-                            "type": "number"
-                        }
-                    },
-                    "required": [
-                        "latitude",
-                        "longitude"
-                    ],
-                    "type": "object"
-                },
-                "lockerId": {
-                    "description": "The unique identifier of the locker",
-                    "forms": [
-                        {
-                            "href": "//api/status"
-                        }
-                    ],
-                    "type": "integer"
-                },
-                "price": {
-                    "description": "The price for the locker",
-                    "forms": [
-                        {
-                            "href": "//api/status"
-                        }
-                    ],
-                    "maximum": 50,
-                    "minimum": 0,
-                    "type": "integer"
-                },
-                "smartContractAdds": {
-                    "description": "The smart contract address of the locker",
-                    "forms": [
-                        {
-                            "href": "//api/status"
-                        }
-                    ],
-                    "type": "string"
-                },
-                "volume": {
-                    "description": "The volume of the locker in cc",
-                    "forms": [
-                        {
-                            "href": "//api/status"
-                        }
-                    ],
-                    "minimum": 0,
-                    "type": "integer"
-                }
-            },
-            "required": [
-                "lockerId",
-                "price",
-                "volume"
-            ],
-            "security": [
-                "bearer_sc"
-            ],
-            "securityDefinitions": {
-                "bearer_sc": {
-                    "alg": "ES256",
-                    "description": "bearer token available to locker renter",
-                    "format": "jwt",
-                    "in": "header",
-                    "scheme": "bearer"
-                }
-            },
-            "title": "SMAUG data model schema",
-            "type": "object"
-        }
-    }
-}
+    'id': 'schema id',
+    'name': 'schema name',
+    'schema': 'schema',
+    'extended': 'extended schema' // if present
+ }
 ```
+
+If the schema name is already in the db the component respond wit 
+```
+Status code: 400
+
+{ "error": "Bad Request", "message": "schema name already saved"}'
+```
+If a some of the minimum information is missing
+```
+Status code: 400
+
+'{ "error": "Bad Request", "message": "must include schema and schema name"}'
+```
+#### Get schema
+This route returns the schemas information saved in the SR component DB. e.g.
+```
+data = {'name': 'schema_name'}
+requests.post(url, json=data)
+```
+
+and it returns
+```
+Status code: 200
+
+{
+    'id': 'schema id',
+    'name': 'schema name',
+    'schema': 'schema',
+    'extended': 'extended schema' // if present
+ }
+```
+
+If a post request is sent without any data, then the component respond with the info of every schema saved in the db
+
+If the schema is not in the DB then
+```
+Status code: 400
+
+{'error': 'Bad Request', 'message': 'schema not found'}
+``` 
+
+The schema can be retrieved with a get to the endpoint. To get the schema the schema id must be used
+```
+http:www.example.com/get_schema/1
+```
+#### Remove schema
+This API provide the functionality to remove a schema by its name. e.g.
+```
+data = {'name': 'schema_name'}
+requests.post(url, json=data)
+```
+
+If the schema is removed successfully then
+```
+Status code: 200
+
+{"message": "schema removed"}
+```
+
+If the schema is not in the DB
+```
+Status code: 400
+
+{ "error": "Bad Request", "message": "schema not found"}
+```
+If the API required information is not satisfied
+```
+Status code: 400
+
+{ "error": "Bad Request", "message": "must include the schema name"}
+```
+
+#### Update schema
+This API is used to update the schema in the SR component DB. e.g.
+```
+data = {'name': 'schema name', 'schema': 'schema'}
+requests.post(url, json=data)
+```
+If the update is successful, then
+```
+Status code: 200
+
+{
+    'id': 'schema id',
+    'name': 'schema name',
+    'schema': 'schema',
+    'extended': 'extended schema' // if present
+ }
+```
+If the schema is not in the DB, then
+```
+Status code: 400
+
+{ "error": "Bad Request", "message": "schema not found"}
+```
+If the request data is not correct, then
+```
+Status code: 400
+
+'{ "error": "Bad Request", "message": "must include schema and schema name"}'
+```
+
+#### Validate
+This API is used to validate a json messages against a specified schema. e.g.
+```
+data = {'message': json_msg, 'schema_name': 'schema name'}
+requests.post(url, json=data)
+```
+If the message is valid for the mentioned schema, then
+```
+{"message": "valid"}
+```
+If the message is not valid then the component respond with status code 400 and what made the message invalid
 
 ## Testing
 
-The `test/` directory contains the scripts to unit test the software modules of the component. 
-To perform functional tests you must create 2 files:
-- tests/static/custom_valid_requests.json
-- tests/static/custom_invalid_requests.json
-
-The first file must contains the valid JSON objects, based on the schema (config.yaml -> schema_path). 
-
-The second file must contain the not valid JSON objects, based on the schema (config.yaml -> schema_path).
-
-Examples are in:
-- tests/static/default_valid_requests.json
-- tests/static/default_invalid_requests.json
+The component define a series of functional api tests.
+These tests check that from a defined input, the output are consistently correct
 
 ### Running the tests
 
-The first test file performs UNIT tests on the validation function:
-
-```
-python3 tests/test_validation.py
-```
-
-The second test file performs POST requests using as input the JSON object in the file created in the previous chapter.
-
-```
-python3 tests/test_requests.py
-```
-<b>NB</b> RUN the component before stating the SECOND test
-
-The third test file is used to check that the custom schema (config.yaml -> schema_path) created ad-hoc 
-for the specific use of this component is congruent with the W3C TD standard.
-
-```
-test_custom_schema_validation.py
-```
-The test return "valid" if the custom schema is congruent with the W3C TD standard. 
-Otherwise it return an error messages with the description of the problems
-
+The functional tests are in the file tests/tests_api.py
+These tests must be run against the active component. Is possible to run the component with a test configuration, 
+which is found in tests/test_run.py. To use another configuration, is possible to define it in the config.py file, then 
+pass that configuration instead og the test default configuration
 ### Evaluating the results
 
 At the current state of the implementation§ no particular results are logged after the tests.

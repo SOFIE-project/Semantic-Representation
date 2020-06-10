@@ -1,6 +1,6 @@
 # !/usr/bin/env python
 from project import create_app, db
-from config import Config, TestConfig
+from config import Config, TestConfig # Import the custom configuration here if needed
 import sys
 import os
 import unittest
@@ -16,7 +16,7 @@ staticdir = os.path.join(basedir, 'static/')
 class SemanticRepresentationAPI(unittest.TestCase):
 
     def setUp(self):
-        self.app = create_app(Config)
+        self.app = create_app(TestConfig) # Select the custom configuration here, if needed
         self.baseurl = 'http://' + self.app.config['HOST'] + ':' + self.app.config['PORT']
         self.app_context = self.app.app_context()
         self.app_context.push()
@@ -180,6 +180,7 @@ class SemanticRepresentationAPI(unittest.TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertEqual(json.loads(response.text),
                          json.loads(json.dumps({'error': 'Bad Request', 'message': 'schema not found'})))
+        # ToDo return all schemas
 
         remove_schemas(self.baseurl + '/api/remove_schema', self.schemas)
 
