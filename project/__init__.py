@@ -15,6 +15,8 @@ def create_app(config=Config):
     app.config.from_object(config)
     db.init_app(app)
     migrate.init_app(app, db)
+    with app.app_context():
+        db.create_all()
     from project.errors import bp as error_bp
     app.register_blueprint(error_bp)
 

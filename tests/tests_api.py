@@ -16,7 +16,7 @@ staticdir = os.path.join(basedir, 'static/')
 class SemanticRepresentationAPI(unittest.TestCase):
 
     def setUp(self):
-        self.app = create_app(TestConfig) # Select the custom configuration here, if needed
+        self.app = create_app(Config) # Select the custom configuration here, if needed
         self.baseurl = 'http://' + self.app.config['HOST'] + ':' + self.app.config['PORT']
         self.app_context = self.app.app_context()
         self.app_context.push()

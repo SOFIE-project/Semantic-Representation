@@ -4,7 +4,11 @@ __pycache__
 
 
 # Database
-project/app.db
+app.db
+
+#logs
+app.db
+logs/
 
 # Linux tools
 container_reset.sh

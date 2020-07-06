@@ -9,7 +9,6 @@
 
 - [Usage](#usage)
   - [Prerequisites](#prerequisites)
-  - [Configuration](#configuration)
   - [Execution](#execution)
 
 - [Testing](#testing)
@@ -84,22 +83,6 @@ The component is handle as a dockerized webservice
 ### Prerequisites
 
 Docker
-
-### configuration
-
-Component configuration can be handled creating a file .env in the root of the component folder:
-
-- .env:
-
-```
-SECRET_KEY = '1234'
-HOST = 127.0.0.1
-PORT = 5000
-DEBUG = False
-DATABASE_URL = sqlite:///project/app.db
-```
-to further control the component configuration, the file config.py holds two classes that represent production and test
- configuration 
 
 ### Build and Execution
 
