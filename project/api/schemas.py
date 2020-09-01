@@ -1,6 +1,6 @@
 from project import db
 from project.api import bp
-from project.api.errors import bad_request
+from project.api.errors import bad_request, error_response
 from flask import request, jsonify
 from project.models import Schema
 
@@ -11,31 +11,31 @@ def add_schema():
     if 'name' not in data or 'schema' not in data:
         return bad_request('must include schema and schema name')
     if Schema.query.filter_by(name=data['name']).first():
-        return bad_request('schema name already saved')
+        return error_response(409, 'schema name already saved')
     if 'extended' in data:
         if not Schema.query.filter_by(name=data['extended']).first():
-            return bad_request('Extended schema not in the DB')
+            return error_response(406, 'Extended schema not in the DB')
     schema = Schema()
     schema.from_dict(data)
     db.session.add(schema)
     db.session.commit()
     response = jsonify(schema.to_dict())
-    response.status_code = 200
+    response.status_code = 201
     return response
 
 
-@bp.route('/remove_schema', methods=['POST'])
+@bp.route('/remove_schema', methods=['DELETE'])
 def remove_schema():
     data = request.get_json() or {}
     if 'name' not in data:
         return bad_request('must include the schema name')
     schema = Schema.query.filter_by(name=data['name']).first()
     if schema is None:
-        return bad_request('schema not found')
+        return error_response(404, 'schema not found')
     db.session.delete(schema)
     db.session.commit()
     response = jsonify({'message': 'schema removed'})
-    response.status_code = 200
+    response.status_code = 201
     return response
 
 
@@ -46,18 +46,17 @@ def update_schema():
         return bad_request('must include schema and schema name')
     schema = Schema.query.filter_by(name=data['name']).first()
     if schema is None:
-        return bad_request('schema not found')
-
+        return error_response(404, 'schema not found')
     schema.from_dict(data)
     db.session.commit()
     response = jsonify(schema.to_dict())
-    response.status_code = 200
+    response.status_code = 201
     return response
 
 
-@bp.route('/get_schema/<int:id>', methods=['GET'])
-def get_schema2(id):
-    schema = Schema.query.get_or_404(id)
+@bp.route('/get_schema/<int:schema_name>', methods=['GET'])
+def get_schema2(schema_name):
+    schema = Schema.query.get_or_404(schema_name)
     return jsonify(schema.schema)
 
 
