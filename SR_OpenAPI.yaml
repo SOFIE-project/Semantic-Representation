@@ -1,0 +1,232 @@
+openapi: 3.0.0
+
+info:
+  title: Semantic Representation OpenAPI
+  description: Semantic Representation OpenAPI for validate data objects and schemas.
+  version: 1.0.0
+  contact:
+    name: Filippo Vimini
+    email: filippo.vimini@aalto.fi
+    
+externalDocs:
+  description: SOFIE project wiki
+  url: https://sofie.comnet.aalto.fi/index.php/Main_Page
+
+servers:
+  - url: /api/
+
+paths:
+
+  /get_schema/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The db's id of the schema. You can lists all schemas' ids with the API get_schema_list
+        schema:
+          type: string
+        required: true
+    get:
+      operationId: getSchema
+      summary: "Get a Schema or a Thing description from the system"
+      tags:
+        - schema
+      responses:
+        201:
+          description: schema found.
+        404:
+          description: schema not found
+        5XX:
+          description: Unexpected error.
+
+  /get_schema_list/:
+    get:
+      operationId: schemaList
+      summary: "Get the list of all saved schemas or a Thing description in the system with their db's id"
+      tags:
+        - schema
+      responses:
+        200:
+          description: schema list found.
+        404:
+          description: schema not found
+        5XX:
+          description: Unexpected error.
+
+  /remove_schema/{id}:
+    parameters:
+      - in: path
+        name: id
+        description: The db's id of the schema. You can lists all schemas' ids with the API get_schema_list
+        schema:
+          type: string
+        required: true
+    delete:
+      operationId: deleteSchema
+      summary: "Delete a Schema or a Thing description in the system"
+      tags:
+        - schema
+      responses:
+        201:
+          description: schema removed.
+        404:
+          description: schema not found
+        5XX:
+          description: Unexpected error.
+
+  /add_schema:
+    post:
+      operationId: addSchema
+      summary: "Add a new schema or Thing Description to the component"
+      tags:
+        - schema
+      requestBody:
+        description: this API is used to add WoT schemas or WoT Thing descriptions to the system. These information will be used to validate the message against.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+            example: {
+              "name": "test_schema",
+              "extend":"old_schema",
+              "schema": {
+              "@context": ["https://www.w3.org/2019/wot/td/v1"],
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "$id": "http://smaugexample.com/schema.json",
+              "title": "SMAUG data model schema",
+              "type": "object",
+              "securityDefinitions": {
+                "bearer_sc": {
+                  "description": "bearer token available to locker renter",
+                  "in": "header",
+                  "scheme": "bearer",
+                  "format": "jwt",
+                  "alg": "ES256"
+                }
+              },
+              "security": ["bearer_sc"],
+              "properties": {
+                "lockerId": {
+                  "description": "The unique identifier of the locker",
+                  "type": "integer",
+                  "forms": [{"href": "//api/status"}]
+                },
+                "price": {
+                  "description": "The price for the locker",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 50,
+                  "forms": [{"href": "//api/status"}]
+                },
+                "volume":{
+                  "description": "The volume of the locker in cc",
+                  "type": "integer",
+                  "minimum": 0,
+                  "forms": [{"href": "//api/status"}]
+                },
+              "required": ["latitude", "longitude"],
+              "forms": [{"href": "//api/status"}]
+              }
+            }
+            }
+      responses:
+        201:
+          description: Schema successfully added.
+        422:
+          description: Bad data input, must include schema and schema name.
+        404:
+          description: Extended schema not found.
+        409:
+          description: Schema name already saved.
+        5XX:
+          description: Unexpected error.
+
+  /update_schema:
+    put:
+      operationId: updateSchema
+      summary: "Update a schema or Thing Description on the component"
+      tags:
+        - schema
+      requestBody:
+        description: this API is used to update an existing WoT schemas or WoT Thing descriptions on the system.
+        required: true
+        content:
+          application/json:
+            schema:
+              type: "object"
+            example: {
+              "name": "test_schema",
+              "schema": {
+              "@context": ["https://www.w3.org/2019/wot/td/v1"],
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "$id": "http://smaugexample.com/schema.json",
+              "title": "SMAUG data model schema",
+              "type": "object",
+              "securityDefinitions": {
+                "bearer_sc": {
+                  "description": "bearer token available to locker renter",
+                  "in": "header",
+                  "scheme": "bearer",
+                  "format": "jwt",
+                  "alg": "ES256"
+                }
+              },
+              "security": ["bearer_sc"],
+              "properties": {
+                "lockerId": {
+                  "description": "The unique identifier of the locker",
+                  "type": "integer",
+                  "forms": [{"href": "//api/status"}]
+                },
+                "price": {
+                  "description": "The price for the locker",
+                  "type": "integer",
+                  "minimum": 0,
+                  "maximum": 50,
+                  "forms": [{"href": "//api/status"}]
+                },
+              "required": ["latitude", "longitude"],
+              "forms": [{"href": "//api/status"}]
+              }
+            }
+            }
+      responses:
+        204:
+          description: Schema successfully updated.
+        422:
+          description: bad data input, must include schema and schema name.
+        404:
+          description: schema not found.
+        5XX:
+          description: Unexpected error.
+
+  /validate:
+    post:
+      operationId: validateJson
+      summary: "validate a json against a specified schema"
+      tags:
+        - validate
+      requestBody:
+        description: This API is used to validate json messages sent by the IoT platforms
+        required: True
+        content:
+          application/json:
+            schema:
+              type: "object"
+            example: {
+              "message": {"lockerId": 1234, "price": 35, "volume": 15},
+              "schema": "test_schema"
+            }
+      responses:
+        201:
+          description: validation succeeded.
+        400:
+            description: validation failed.
+        404:
+            description: schema not found.
+        422:
+          description: bad data input, must include message and schema name.
+        500:
+          description: extension not found
+        5XX:
+            description: Unexpected error.
