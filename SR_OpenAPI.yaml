@@ -17,11 +17,11 @@ servers:
 
 paths:
 
-  /get_schema/{schema_name}:
+  /get_schema/{id}:
     parameters:
       - in: path
-        name: schema_name
-        description: The name of the schema.
+        name: id
+        description: The db's id of the schema. You can lists all schemas' ids with the API get_schema_list
         schema:
           type: string
         required: true
@@ -38,11 +38,25 @@ paths:
         5XX:
           description: Unexpected error.
 
-  /remove_schema/{schema_name}:
+  /get_schema_list/:
+    get:
+      operationId: schemaList
+      summary: "Get the list of all saved schemas or a Thing description in the system with their db's id"
+      tags:
+        - schema
+      responses:
+        200:
+          description: schema list found.
+        404:
+          description: schema not found
+        5XX:
+          description: Unexpected error.
+
+  /remove_schema/{id}:
     parameters:
       - in: path
-        name: schema_name
-        description: The name of the schema to remove.
+        name: id
+        description: The db's id of the schema. You can lists all schemas' ids with the API get_schema_list
         schema:
           type: string
         required: true
@@ -118,8 +132,8 @@ paths:
       responses:
         201:
           description: Schema successfully added.
-        400:
-          description: Bad data in input.
+        422:
+          description: Bad data input, must include schema and schema name.
         404:
           description: Extended schema not found.
         409:
@@ -128,7 +142,7 @@ paths:
           description: Unexpected error.
 
   /update_schema:
-    post:
+    put:
       operationId: updateSchema
       summary: "Update a schema or Thing Description on the component"
       tags:
@@ -177,11 +191,42 @@ paths:
             }
             }
       responses:
-        201:
+        204:
           description: Schema successfully updated.
-        400:
-          description: Bad data in input.
+        422:
+          description: bad data input, must include schema and schema name.
         404:
           description: schema not found.
         5XX:
           description: Unexpected error.
+
+  /validate:
+    post:
+      operationId: validateJson
+      summary: "validate a json against a specified schema"
+      tags:
+        - validate
+      requestBody:
+        description: This API is used to validate json messages sent by the IoT platforms
+        required: True
+        content:
+          application/json:
+            schema:
+              type: "object"
+            example: {
+              "message": {"lockerId": 1234, "price": 35, "volume": 15},
+              "schema": "test_schema"
+            }
+      responses:
+        201:
+          description: validation succeeded.
+        400:
+            description: validation failed.
+        404:
+            description: schema not found.
+        422:
+          description: bad data input, must include message and schema name.
+        500:
+          description: extension not found
+        5XX:
+            description: Unexpected error.

@@ -91,14 +91,8 @@ Docker
 
 <b>NB</b> update the ports in the Dockerfile, .env and config.py if needed.
 ### API
-| HTTP Method | Resource URL         | Notes                   |
-|-------------|----------------------|-------------------------|
-| POST        | /api/add_schema      | Add new schema          |
-| POST        | /api/get_schema      | Return a schema         |
-| GET         | /api/get_schema/'id' | Return the schema with id = 'id'        |
-| POST        | /api/remove_schema   | Remove a schema         |
-| POST        | /api/update_schema   | Updates a shema         |
-| POST        | /api/extend_schema   | Extend a schema context |
+
+OpenApi are available at the following: https://app.swaggerhub.com/apis/filippovimini/semantic-representation_open_api/1.0.0
 
 #### Add schema
 This endpoint us used to add a schema in the SR component db. The schemas are identified by name which must be unique.

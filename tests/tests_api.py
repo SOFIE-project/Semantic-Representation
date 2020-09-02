@@ -20,6 +20,10 @@ class SemanticRepresentationAPI(unittest.TestCase):
         self.baseurl = 'http://' + self.app.config['HOST'] + ':' + self.app.config['PORT']
         self.app_context = self.app.app_context()
         self.app_context.push()
+        self.loadFile()
+        db.create_all()
+
+    def loadFile(self):
         with open(os.path.join(staticdir + 'test_schema.json')) as file:
             self.schemas = json.loads(file.read())
         with open(os.path.join(staticdir + 'valid_msg.json')) as file:
@@ -28,7 +32,6 @@ class SemanticRepresentationAPI(unittest.TestCase):
             self.invalid_msg = json.loads(file.read())
         with open(os.path.join(staticdir + 'schema_extension.json')) as file:
             self.schema_extension = json.loads(file.read())
-        db.create_all()
 
     def tearDown(self):
         db.session.remove()
@@ -42,24 +45,19 @@ class SemanticRepresentationAPI(unittest.TestCase):
         schema1 = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
         url = self.baseurl + '/api/add_schema'
 
-        response_ok = requests.post(url, json=schema1)
-        response_already_existent = requests.post(url, json=schema1)
-        response_data_empty = requests.post(url, json={})
+        success = requests.post(url, json=schema1)
+        duplicate = requests.post(url, json=schema1)
+        bad_data_input = requests.post(url, json={})
 
-        self.assertEqual(response_ok.status_code, 200)
-        self.assertEqual(json.loads(response_ok.text)['schema'],
-                         str(schema1['schema']))
-        self.assertEqual(response_already_existent.status_code, 400)
-        self.assertEqual(json.loads(response_already_existent.text),
-                         json.loads('{ "error": "Bad Request", "message": "schema name already saved"}'))
-        self.assertEqual(response_data_empty.status_code, 400)
-        self.assertEqual(json.loads(response_data_empty.text),
-                         json.loads('{ "error": "Bad Request", "message": "must include schema and schema name"}'))
+        self.assertEqual(success.status_code, 201)
+        self.assertEqual(json.loads(success.text)['schema'], str(schema1['schema']))
+        self.assertEqual(duplicate.status_code, 409)
+        self.assertEqual(json.loads(duplicate.text), json.loads('{ "error": "Conflict", "message": "schema name already saved"}'))
+        self.assertEqual(bad_data_input.status_code, 422)
+        self.assertEqual(json.loads(bad_data_input.text), json.loads('{ "error": "Unprocessable Entity", "message": "bad data input, must include schema and schema name"}'))
 
         # Remove entry
-        data = {'name': self.schemas[0]['$id']}
-        url = self.baseurl + '/api/remove_schema'
-        remove_entry = requests.post(url, json=data)
+        self.remove_schemas()
 
     '''
     This function test the schema extension functionality. 
@@ -72,34 +70,25 @@ class SemanticRepresentationAPI(unittest.TestCase):
     def test_api_add_extension(self):
         url = self.baseurl + '/api/add_schema'
 
-        # Add schema to be extended
+        # Add schema to be extended in the db
         schema_name = self.schemas[0]['$id']
         extended_schema = self.schemas[0]
-        data = {'name': schema_name, 'schema': extended_schema}
-        requests.post(url, json=data)
+        requests.post(url, json={'name': schema_name, 'schema': extended_schema})
 
         # Add valid schema extension
         data = {'name': self.schema_extension['$id'], 'schema': self.schema_extension, 'extended': schema_name}
         response = requests.post(url, json=data)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.text)['name'],
-                         self.schema_extension['$id'])
-        self.assertEqual(json.loads(response.text)['schema'],
-                         str(self.schema_extension))
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(json.loads(response.text)['name'], self.schema_extension['$id'])
+        self.assertEqual(json.loads(response.text)['schema'], str(self.schema_extension))
 
         # Add a not valid schema extension
         data = {'name': 'new schema extension', 'schema': self.schema_extension, 'extended': 'I dont exist'}
         response = requests.post(url, json=data)
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(json.loads(response.text)['message'],
-                         'Extended schema not in the DB')
+        self.assertEqual(response.status_code, 406)
+        self.assertEqual(json.loads(response.text)['message'], 'Extended schema not in the DB')
 
-        # Clean the db for other tests
-        url = self.baseurl + '/api/remove_schema'
-        data = {'name': schema_name}
-        requests.post(url, json=data)
-        data = {'name': self.schema_extension['$id']}
-        requests.post(url, json=data)
+        self.remove_schemas()
 
     '''
     This function test the update schema functionality of the SR component. First a schema is added, then its updated 
@@ -117,51 +106,32 @@ class SemanticRepresentationAPI(unittest.TestCase):
         data2 = {'name': 'not_found', 'schema': self.schemas[1]}
         url = self.baseurl + '/api/update_schema'
 
-        response_ok = requests.post(url, json=data)
-        response_not_found = requests.post(url, json=data2)
-        response_data_empty = requests.post(url, json={})
+        response_ok = requests.put(url, json=data)
+        response_not_found = requests.put(url, json=data2)
+        response_data_empty = requests.put(url, json={})
 
-        self.assertEqual(response_ok.status_code, 200)
-        self.assertEqual(json.loads(response_ok.text)['schema'],
-                         str(data['schema']))
-        self.assertEqual(json.loads(response_not_found.text),
-                         json.loads('{ "error": "Bad Request", "message": "schema not found"}'))
-        self.assertEqual(response_data_empty.status_code, 400)
-        self.assertEqual(json.loads(response_data_empty.text),
-                         json.loads('{ "error": "Bad Request", "message": "must include schema and schema name"}'))
+        self.assertEqual(response_ok.status_code, 204)
+        self.assertEqual(json.loads(response_not_found.text), json.loads('{ "error": "Not Found", "message": "schema not found"}'))
+        self.assertEqual(response_data_empty.status_code, 422)
+        self.assertEqual(json.loads(response_data_empty.text), json.loads('{ "error": "Unprocessable Entity", "message": "bad data input, must include schema and schema name"}'))
 
         # Remove entry
-        data = {'name': self.schemas[0]['$id']}
-        url = self.baseurl + '/api/remove_schema'
-        requests.post(url, json=data)
+        self.remove_schemas()
 
     '''
-    This function tests the remove schema functionality of the SR component. A schema is added to the SR component's DB 
-    then removed
+    This function tests the remove schema functionality of the SR component. A schema is added to the SR component's DB then removed
     '''
     def test_api_remove_schema(self):
         # Add entry
-        data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
-        url = self.baseurl + '/api/add_schema'
+        requests.post(url=self.baseurl + '/api/add_schema', json={'name': self.schemas[0]['$id'], 'schema': self.schemas[0]})
+        # There is only one entry in the test db, so the id is '1'
+        success = requests.delete(url=self.baseurl + '/api/remove_schema/1')
+        not_found = requests.delete(url=self.baseurl + '/api/remove_schema/2')
 
-        requests.post(url, json=data)
-
-        data = {'name': self.schemas[0]['$id']}
-        url = self.baseurl + '/api/remove_schema'
-
-        response_ok = requests.post(url, json=data)
-        response_not_found = requests.post(url, json=data)
-        response_data_empty = requests.post(url, json={})
-
-        self.assertEqual(response_ok.status_code, 200)
-        self.assertEqual(json.loads(response_ok.text),
-                         json.loads('{"message": "schema removed"}'))
-        self.assertEqual(response_not_found.status_code, 400)
-        self.assertEqual(json.loads(response_not_found.text),
-                         json.loads('{ "error": "Bad Request", "message": "schema not found"}'))
-        self.assertEqual(response_data_empty.status_code, 400)
-        self.assertEqual(json.loads(response_data_empty.text),
-                         json.loads('{ "error": "Bad Request", "message": "must include the schema name"}'))
+        self.assertEqual(success.status_code, 201)
+        self.assertEqual(json.loads(success.text), json.loads('{"message": "schema removed"}'))
+        self.assertEqual(not_found.status_code, 404)
+        self.assertEqual(json.loads(not_found.text), json.loads('{ "error": "Not Found", "message": "schema not found"}'))
 
     '''
         This function tests SR component post functionality.
@@ -174,44 +144,32 @@ class SemanticRepresentationAPI(unittest.TestCase):
         for schema in self.schemas:
             response = requests.post(url, json={'name': schema['$id']})
             self.assertEqual(response.status_code, 200)
-            self.assertEqual(json.loads(response.text)['name'],
-                             schema['$id'])
+            self.assertEqual(json.loads(response.text)['name'], schema['$id'])
         response = requests.post(url, json={'name': 'not found'})
         self.assertEqual(response.status_code, 400)
         self.assertEqual(json.loads(response.text),
                          json.loads(json.dumps({'error': 'Bad Request', 'message': 'schema not found'})))
-        # ToDo return all schemas
 
-        remove_schemas(self.baseurl + '/api/remove_schema', self.schemas)
+        self.remove_schemas()
 
     '''
     This function tests SR component get functionality.
     A schema is added to the component's db, then this schema is retrieved with a get request using its URL 
     '''
     def test_api_get_get_schema(self):
-        # Add first entry
-        data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
+        # Add first and second schema
         url = self.baseurl + '/api/add_schema'
-        requests.post(url, json=data)
+        requests.post(url, json={'name': self.schemas[0]['$id'], 'schema': self.schemas[0]})
+        requests.post(url, json={'name': self.schemas[1]['$id'], 'schema': self.schemas[1]})
 
-        # Add second entry
-        data2 = {'name': self.schemas[1]['$id'], 'schema': self.schemas[1]}
-        add_entry = requests.post(url, json=data2)
+        success1 = requests.get(self.baseurl + '/api/get_schema/1')
+        success2 = requests.get(self.baseurl + '/api/get_schema/2')
+        not_found = requests.get(self.baseurl + '/api/get_schema/3')
+        self.assertEqual(json.loads(success1.text), str(self.schemas[0]))
+        self.assertEqual(json.loads(success2.text), str(self.schemas[1]))
+        self.assertEqual(json.loads(not_found.text), json.loads('{"error": "Not Found"}'))
 
-        url = self.baseurl + '/api/get_schema/1'
-        url2 = self.baseurl + '/api/get_schema/2'
-        url_not_found = self.baseurl + '/api/get_schema/3'
-        response_schema1 = requests.get(url)
-        response_schema2 = requests.get(url2)
-        response_schema_not_found = requests.get(url_not_found)
-        self.assertEqual(json.loads(response_schema1.text),
-                         str(self.schemas[0]))
-        self.assertEqual(json.loads(response_schema2.text),
-                         str(self.schemas[1]))
-        self.assertEqual(json.loads(response_schema_not_found.text),
-                         json.loads('{"error": "Not Found"}'))
-
-        remove_schemas(self.baseurl + '/api/remove_schema', self.schemas)
+        self.remove_schemas()
 
     '''
     This test shows the message validation functionality of the SR component.
@@ -233,8 +191,7 @@ class SemanticRepresentationAPI(unittest.TestCase):
             data = {'message': msg, 'schema_name': self.schemas[0]['$id']}
             response_valid = requests.post(url, json=data)
             self.assertEqual(response_valid.status_code, 200)
-            self.assertEqual(json.loads(response_valid.text),
-                             json.loads('{"message": "valid"}'))
+            self.assertEqual(json.loads(response_valid.text), json.loads('{"message": "validation succeeded"}'))
         # Validate not valid msg
         for msg in self.invalid_msg:
             data = {'message': msg, 'schema_name': self.schemas[0]['$id']}
@@ -242,7 +199,7 @@ class SemanticRepresentationAPI(unittest.TestCase):
             self.assertEqual(response_valid.status_code, 400)
 
         # Clear DB for the next tests
-        remove_schemas(self.baseurl + '/api/remove_schema', self.schemas)
+        self.remove_schemas()
 
     '''
     This test shows how validation works on extended schemas. 
@@ -275,16 +232,14 @@ class SemanticRepresentationAPI(unittest.TestCase):
         data = {'message': extension_mgs, 'schema_name': self.schema_extension['$id']}
         response = requests.post(url, json=data)
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.text),
-                         json.loads('{"message": "valid"}'))
+        self.assertEqual(json.loads(response.text), json.loads('{"message": "validation succeeded"}'))
 
         # Invalid message for the extended schema (volume is required in the extended schema, not in the extension)
         extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "extended": 2}))
         data = {'message': extension_mgs, 'schema_name': self.schema_extension['$id']}
         response = requests.post(url, json=data)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(json.loads(response.text)['message'],
-                         "not valid, 'volume' is a required property")
+        self.assertEqual(json.loads(response.text)['message'], "not valid, 'volume' is a required property")
 
         # Invalid message for the schema extension (extension is required in the schema extension, not in the extended schema)
         extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "volume": 15}))
@@ -301,17 +256,30 @@ class SemanticRepresentationAPI(unittest.TestCase):
         data = {'name': self.schema_extension['$id']}
         requests.post(url, json=data)
 
+    def test_get_schema_list(self):
+        # Add 1st and 2d schema
+        url =self.baseurl + '/api/add_schema'
+        requests.post(url=url, json= {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]})
+        requests.post(url=url, json={'name': self.schemas[1]['$id'], 'schema': self.schemas[1]})
+        # get all schemas on the db
+        url = self.baseurl + '/api/get_schema_list'
+        response = requests.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def remove_schemas(self):
+        schemas = requests.get(url=self.baseurl + '/api/get_schema_list')
+        schemas = json.loads(schemas.content)
+        for key in schemas.keys():
+            response = requests.delete(url=self.baseurl+'/api/remove_schema/'+key)
+            if response.status_code is not 201:
+                print(response.content)
+
 
 def add_schemas(url, schemas):
     for schema in schemas:
         data = {'name': schema['$id'], 'schema': schemas}
         requests.post(url, json=data)
 
-
-def remove_schemas(url, schemas):
-    for schema in schemas:
-        data = {'name': schema['$id']}
-        requests.post(url, json=data)
 
 
 if __name__ == '__main__':
