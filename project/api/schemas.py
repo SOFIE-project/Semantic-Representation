@@ -5,7 +5,7 @@ from flask import request, jsonify, Response
 from project.models import Schema
 
 
-@bp.route('/add_schema', methods=['POST'])
+@bp.route('/schema', methods=['POST'])
 def add_schema():
     data = request.get_json() or {}
     if 'name' not in data or 'schema' not in data:
@@ -24,7 +24,7 @@ def add_schema():
     return response
 
 
-@bp.route('/remove_schema/<int:id>', methods=['DELETE'])
+@bp.route('/schema/<int:id>', methods=['DELETE'])
 def remove_schema(id):
     schema = Schema.query.filter_by(id=id).first()
     if schema is None:
@@ -36,7 +36,7 @@ def remove_schema(id):
     return response
 
 
-@bp.route('/update_schema', methods=['PUT'])
+@bp.route('/schema', methods=['PUT'])
 def update_schema():
     data = request.get_json() or {}
     if 'name' not in data or 'schema' not in data:
@@ -51,31 +51,13 @@ def update_schema():
     return response
 
 
-@bp.route('/get_schema/<string:schema_name>', methods=['GET'])
-def get_schema2(schema_name):
-    schema = Schema.query.get_or_404(schema_name)
+@bp.route('/schema/<int:id>', methods=['GET'])
+def get_schema2(id):
+    schema = Schema.query.get_or_404(id)
     return jsonify(schema.schema)
 
 
-@bp.route('/get_schema', methods=['POST'])
-def get_schema():
-    data = request.get_json() or {}
-    schemas_dict = {}
-    if 'name' not in data:
-        schemas = Schema.query.all()
-        for schema in schemas:
-            schemas_dict.update(schema.to_dict())
-    else:
-        schema = Schema.query.filter_by(name=data['name']).first()
-        if schema is None:
-            return bad_request('schema not found')
-        schemas_dict.update(schema.to_dict())
-    response = jsonify(schemas_dict)
-    response.status_code = 200
-    return response
-
-
-@bp.route('get_schema_list', methods=['GET'])
+@bp.route('/schema-list', methods=['GET'])
 def get_schema_list():
     schemas = Schema.query.all()
     if schemas is None:

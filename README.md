@@ -87,139 +87,18 @@ Docker
 ### Build and Execution
 
 - docker build /"Dockerfile folder"/ -t semantic-representation
-- docker run -p 5000:5000 -t semantic-representation
+- docker run -p 5000:5000 -d -t --name semantic_app semantic-representation
+
+The internal port of the component is 5000, you can change the external port:
+- docker run -p "custom_port":5000 -t semantic-representation
+remember then to pass the same port as environment variable before running the tests
+
+export PORT="custom_port"
 
 <b>NB</b> update the ports in the Dockerfile, .env and config.py if needed.
 ### API
 
 OpenApi are available at the following: https://app.swaggerhub.com/apis/filippovimini/semantic-representation_open_api/1.0.0
-
-#### Add schema
-This endpoint us used to add a schema in the SR component db. The schemas are identified by name which must be unique.
-The component will notify is the schema is already saved in the db. e.g. 
-```
-data = {'name': 'schema_name', 'schema': schema}
-requests.post(url, json=data)
-```
-
-If a schema extension is added then
-```
-data = {'name': 'extension name', 'schema': 'schema', 'extended': 'extended schema name'}
-requests.post(url, json=data)
-```
-
-on success the route respond 
-```
-Status code: 200
-
-{
-    'id': 'schema id',
-    'name': 'schema name',
-    'schema': 'schema',
-    'extended': 'extended schema' // if present
- }
-```
-
-If the schema name is already in the db the component respond wit 
-```
-Status code: 400
-
-{ "error": "Bad Request", "message": "schema name already saved"}'
-```
-If a some of the minimum information is missing
-```
-Status code: 400
-
-'{ "error": "Bad Request", "message": "must include schema and schema name"}'
-```
-#### Get schema
-This route returns the schemas information saved in the SR component DB. e.g.
-```
-data = {'name': 'schema_name'}
-requests.post(url, json=data)
-```
-
-and it returns
-```
-Status code: 200
-
-{
-    'id': 'schema id',
-    'name': 'schema name',
-    'schema': 'schema',
-    'extended': 'extended schema' // if present
- }
-```
-
-If a post request is sent without any data, then the component respond with the info of every schema saved in the db
-
-If the schema is not in the DB then
-```
-Status code: 400
-
-{'error': 'Bad Request', 'message': 'schema not found'}
-``` 
-
-The schema can be retrieved with a get to the endpoint. To get the schema the schema id must be used
-```
-http:www.example.com/get_schema/1
-```
-#### Remove schema
-This API provide the functionality to remove a schema by its name. e.g.
-```
-data = {'name': 'schema_name'}
-requests.post(url, json=data)
-```
-
-If the schema is removed successfully then
-```
-Status code: 200
-
-{"message": "schema removed"}
-```
-
-If the schema is not in the DB
-```
-Status code: 400
-
-{ "error": "Bad Request", "message": "schema not found"}
-```
-If the API required information is not satisfied
-```
-Status code: 400
-
-{ "error": "Bad Request", "message": "must include the schema name"}
-```
-
-#### Update schema
-This API is used to update the schema in the SR component DB. e.g.
-```
-data = {'name': 'schema name', 'schema': 'schema'}
-requests.post(url, json=data)
-```
-If the update is successful, then
-```
-Status code: 200
-
-{
-    'id': 'schema id',
-    'name': 'schema name',
-    'schema': 'schema',
-    'extended': 'extended schema' // if present
- }
-```
-If the schema is not in the DB, then
-```
-Status code: 400
-
-{ "error": "Bad Request", "message": "schema not found"}
-```
-If the request data is not correct, then
-```
-Status code: 400
-
-'{ "error": "Bad Request", "message": "must include schema and schema name"}'
-```
 
 #### Validate
 This API is used to validate a json messages against a specified schema. e.g.
@@ -229,7 +108,7 @@ requests.post(url, json=data)
 ```
 If the message is valid for the mentioned schema, then
 ```
-{"message": "valid"}
+{"message": "validation succeeded"}
 ```
 If the message is not valid then the component respond with status code 400 and what made the message invalid
 
@@ -244,6 +123,9 @@ The functional tests are in the file tests/tests_api.py
 These tests must be run against the active component. Is possible to run the component with a test configuration, 
 which is found in tests/test_run.py. To use another configuration, is possible to define it in the config.py file, then 
 pass that configuration instead og the test default configuration
+
+to run the tests: python3 -m unittest
+
 ### Evaluating the results
 
 At the current state of the implementation§ no particular results are logged after the tests.
