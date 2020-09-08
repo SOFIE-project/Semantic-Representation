@@ -1,7 +1,7 @@
 from project.api import bp
 from project.api.errors import bad_request, error_response
 from project.models import Schema
-from flask import request, jsonify
+from flask import request, jsonify, make_response
 from werkzeug.exceptions import BadRequest
 from functools import wraps
 import jsonschema
@@ -29,17 +29,17 @@ def validate_task():
     # ToDo recursive?
     schema = Schema.query.filter_by(name=data['schema_name']).first()
     if schema is None:
-        return error_response(404, 'schema not found')
+        return error_response(404)
     if schema.extended is not None:
         extension = Schema.query.filter_by(name=schema.extended).first()
         if extension is None:
-            return error_response(500, 'extension not found')
+            return error_response(404)
         extension = json.loads(json.dumps(ast.literal_eval(extension.schema)))
         instance = json.loads(json.dumps(data['message']))
         try:
             jsonschema.validate(instance=instance, schema=extension)
         except (jsonschema.ValidationError, jsonschema.exceptions.SchemaError) as e:
-            return error_response(400, "not valid, " + e.message)
+            return error_response(400, e.message)
     # ToDo error handling
     schema = ast.literal_eval(schema.schema)
     schema = json.loads(json.dumps(schema))
@@ -47,10 +47,8 @@ def validate_task():
     try:
         jsonschema.validate(instance=instance, schema=schema)
     except (jsonschema.ValidationError, jsonschema.exceptions.SchemaError) as e:
-        return bad_request('not valid, ' + e.message)
-    response = jsonify({'message': 'validation succeeded'})
-    response.status_code = 200
-    return response
+        return bad_request(e.message)
+    return make_response('', 204)
 
 
 

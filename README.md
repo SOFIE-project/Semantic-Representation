@@ -86,7 +86,7 @@ Docker
 
 ### Build and Execution
 
-- docker build /"Dockerfile folder"/ -t semantic-representation
+- docker build -t semantic-representation .
 - docker run -p 5000:5000 -d -t --name semantic_app semantic-representation
 
 The internal port of the component is 5000, you can change the external port:
@@ -99,18 +99,6 @@ export PORT="custom_port"
 ### API
 
 OpenApi are available at the following: https://app.swaggerhub.com/apis/filippovimini/semantic-representation_open_api/1.0.0
-
-#### Validate
-This API is used to validate a json messages against a specified schema. e.g.
-```
-data = {'message': json_msg, 'schema_name': 'schema name'}
-requests.post(url, json=data)
-```
-If the message is valid for the mentioned schema, then
-```
-{"message": "validation succeeded"}
-```
-If the message is not valid then the component respond with status code 400 and what made the message invalid
 
 ## Testing
 

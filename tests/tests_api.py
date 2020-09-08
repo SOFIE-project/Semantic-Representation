@@ -81,9 +81,8 @@ class SemanticRepresentationAPI(unittest.TestCase):
         # Add a not valid schema extension
         data = {'name': 'new schema extension', 'schema': self.schema_extension, 'extended': 'I dont exist'}
         response = requests.post(self.schema_url, json=data)
-
         self.assertEqual(response.status_code, 406)
-        self.assertEqual(json.loads(response.text)['message'], 'Extended schema not in the DB')
+        self.assertEqual(json.loads(response.text), json.loads('{"error": "Not Acceptable", "message": "Extended schema not in the DB"}'))
         # clean db for next tests
         self.remove_schemas()
 
@@ -97,12 +96,13 @@ class SemanticRepresentationAPI(unittest.TestCase):
         # Update schema
         data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[1]}
         data2 = {'name': 'not_found', 'schema': self.schemas[1]}
-        response_ok = requests.put(self.schema_url, json=data)
+        success = requests.put(self.schema_url, json=data)
         response_not_found = requests.put(self.schema_url, json=data2)
         response_data_empty = requests.put(self.schema_url, json={})
 
-        self.assertEqual(response_ok.status_code, 204)
-        self.assertEqual(json.loads(response_not_found.text), json.loads('{ "error": "Not Found", "message": "schema not found"}'))
+        self.assertEqual(success.status_code, 201)
+        self.assertEqual(json.loads(success.text)['schema'], str(self.schemas[1]))
+        self.assertEqual(json.loads(response_not_found.text), json.loads('{ "error": "Not Found"}'))
         self.assertEqual(response_data_empty.status_code, 422)
         self.assertEqual(json.loads(response_data_empty.text), json.loads('{ "error": "Unprocessable Entity", "message": "bad data input, must include schema and schema name"}'))
         # Remove entry
@@ -121,7 +121,7 @@ class SemanticRepresentationAPI(unittest.TestCase):
         self.assertEqual(success.status_code, 201)
         self.assertEqual(json.loads(success.text), json.loads('{"message": "schema removed"}'))
         self.assertEqual(not_found.status_code, 404)
-        self.assertEqual(json.loads(not_found.text), json.loads('{ "error": "Not Found", "message": "schema not found"}'))
+        self.assertEqual(json.loads(not_found.text), json.loads('{ "error": "Not Found"}'))
 
     '''
     This function tests SR component get functionality.
@@ -135,8 +135,11 @@ class SemanticRepresentationAPI(unittest.TestCase):
         success2 = requests.get(self.baseurl + '/api/schema/2')
         not_found = requests.get(self.baseurl + '/api/schema/3')
 
+        self.assertEqual(success1.status_code, 200)
         self.assertEqual(json.loads(success1.text), str(self.schemas[0]))
+        self.assertEqual(success2.status_code, 200)
         self.assertEqual(json.loads(success2.text), str(self.schemas[1]))
+        self.assertEqual(not_found.status_code, 404)
         self.assertEqual(json.loads(not_found.text), json.loads('{"error": "Not Found"}'))
         # Clean db
         self.remove_schemas()
@@ -151,21 +154,27 @@ class SemanticRepresentationAPI(unittest.TestCase):
     '''
     def test_api_validate(self):
         # Add schema
-        data = {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]}
-        requests.post(self.schema_url, json=data)
-        # Validate valid msg
+        requests.post(self.schema_url, json={'name': self.schemas[0]['$id'], 'schema': self.schemas[0]})
+        # Valid msg
         url = self.baseurl + '/api/validate'
         for msg in self.valid_msg:
-            data = {'message': msg, 'schema_name': self.schemas[0]['$id']}
-            response_valid = requests.post(url, json=data)
-            self.assertEqual(response_valid.status_code, 200)
-            self.assertEqual(json.loads(response_valid.text), json.loads('{"message": "validation succeeded"}'))
-        # Validate not valid msg
-        for msg in self.invalid_msg:
-            data = {'message': msg, 'schema_name': self.schemas[0]['$id']}
-            response_valid = requests.post(url, json=data)
-            self.assertEqual(response_valid.status_code, 400)
-
+            valid = requests.post(url, json={'message': msg, 'schema_name': self.schemas[0]['$id']})
+            self.assertEqual(valid.status_code, 204)
+        # Not valid msg
+        invalid_msg_assert = (
+            '{"error": "Bad Request", "message": "\'lockerId\' is a required property"}',
+            '{"error": "Bad Request", "message": "100 is greater than the maximum of 50"}',
+            '{"error": "Bad Request", "message": "-5 is less than the minimum of 0"}'
+        )
+        for msg, inv_msg in zip(self.invalid_msg, invalid_msg_assert):
+            not_valid = requests.post(url, json={'message': msg, 'schema_name': self.schemas[0]['$id']})
+            self.assertEqual(not_valid.status_code, 400)
+            self.assertEqual(json.loads(not_valid.content), json.loads(inv_msg))
+        # Schema not found
+        for msg in self.valid_msg:
+            not_found = requests.post(url, json={'message': msg, 'schema_name': 'not_found'})
+            self.assertEqual(not_found.status_code, 404)
+            self.assertEqual(json.loads(not_found.content), json.loads('{"error": "Not Found"}'))
         # Clear DB for the next tests
         self.remove_schemas()
 
@@ -184,57 +193,58 @@ class SemanticRepresentationAPI(unittest.TestCase):
     '''
     def test_api_extended_validation(self):
         # Add schema
-        schema_name = self.schemas[0]['$id']
-        data = {'name': schema_name, 'schema': self.schemas[0]}
-        requests.post(self.schema_url, json=data)
+        requests.post(self.schema_url, json={'name': self.schemas[0]['$id'], 'schema': self.schemas[0]})
 
         # Add valid schema extension
-        data = {'name': self.schema_extension['$id'], 'schema': self.schema_extension, 'extended': schema_name}
+        data = {'name': self.schema_extension['$id'], 'schema': self.schema_extension, 'extended': self.schemas[0]['$id']}
         requests.post(self.schema_url, json=data)
 
         url = self.baseurl + '/api/validate'
 
         # Validate the valid message
-        extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "volume": 15, "extended": 2}))
-        data = {'message': extension_mgs, 'schema_name': self.schema_extension['$id']}
-        response = requests.post(url, json=data)
-        self.assertEqual(response.status_code, 200)
-        self.assertEqual(json.loads(response.text), json.loads('{"message": "validation succeeded"}'))
+        valid_extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "volume": 15, "extended": 2}))
+        response = requests.post(url, json={'message': valid_extension_mgs, 'schema_name': self.schema_extension['$id']})
+        self.assertEqual(response.status_code, 204)
 
         # Invalid message for the extended schema (volume is required in the extended schema, not in the extension)
-        extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "extended": 2}))
-        data = {'message': extension_mgs, 'schema_name': self.schema_extension['$id']}
-        response = requests.post(url, json=data)
+        not_valid_extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "extended": 2}))
+        response = requests.post(url, json={'message': not_valid_extension_mgs, 'schema_name': self.schema_extension['$id']})
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(json.loads(response.text)['message'], "not valid, 'volume' is a required property")
+        self.assertEqual(json.loads(response.text), json.loads('{"error": "Bad Request", "message": "\'volume\' is a required property"}'))
 
         # Invalid message for the schema extension (extension is required in the schema extension, not in the extended schema)
         extension_mgs = json.loads(json.dumps({"lockerId": 1234, "price": 35, "volume": 15}))
         data = {'message': extension_mgs, 'schema_name': self.schema_extension['$id']}
         response = requests.post(url, json=data)
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(json.loads(response.text)['message'], "not valid, 'extended' is a required property")
+        self.assertEqual(json.loads(response.text), json.loads('{"error": "Bad Request", "message": "\'extended\' is a required property"}'))
 
         # Clear db for the next tests
         self.remove_schemas()
 
-    def test_get_schema_list(self):
+    def test_get_schemas(self):
+        # Test no schema is found
+        url = self.baseurl + '/api/schemas'
+        not_found = requests.get(url)
+        self.assertEqual(not_found.status_code, 404)
+        self.assertEqual(json.loads(not_found.content), json.loads('{"error": "Not Found"}'))
         # Add 1st and 2d schema
         requests.post(url=self.schema_url, json= {'name': self.schemas[0]['$id'], 'schema': self.schemas[0]})
         requests.post(url=self.schema_url, json={'name': self.schemas[1]['$id'], 'schema': self.schemas[1]})
         # get all schemas on the db
-        url = self.baseurl + '/api/schema-list'
+        url = self.baseurl + '/api/schemas'
         response = requests.get(url)
         self.assertEqual(response.status_code, 200)
+        self.assertEqual(json.loads(response.content), json.loads('{"1":"http://smaugexample.com/schema.json","2":"http://smaugexample.com/schema2.json"}'))
         self.remove_schemas()
 
     def remove_schemas(self):
-        schemas = requests.get(url=self.baseurl + '/api/schema-list')
+        schemas = requests.get(url=self.baseurl + '/api/schemas')
         schemas = json.loads(schemas.content)
         for key in schemas.keys():
             response = requests.delete(url=self.baseurl+'/api/schema/'+key)
             if response.status_code is not 201:
-                print(response.content)
+                print(json.loads(response.content))
 
 
 def add_schemas(url, schemas):
