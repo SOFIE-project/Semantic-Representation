@@ -84,18 +84,23 @@ The component is handle as a dockerized webservice
 
 Docker
 
+Make
+
+Python3
+
 ### Build and Execution
 
-- docker build -t semantic-representation .
-- docker run -p 5000:5000 -d -t --name semantic_app semantic-representation
+To setup and build the component, in cmd navigate in the component folder, then:
+```
+make setup
+```
+To run the component
+```
+make run
+```
 
-The internal port of the component is 5000, you can change the external port:
-- docker run -p "custom_port":5000 -t semantic-representation
-remember then to pass the same port as environment variable before running the tests
-
-export PORT="custom_port"
-
-<b>NB</b> update the ports in the Dockerfile, .env and config.py if needed.
+by default the component runs on the internal port 5000 to external port 5000.
+To modify the port change the variable PORT in the Makefile 
 ### API
 
 OpenApi are available at the following: https://app.swaggerhub.com/apis/filippovimini/semantic-representation_open_api/1.0.0
@@ -107,12 +112,16 @@ These tests check that from a defined input, the output are consistently correct
 
 ### Running the tests
 
-The functional tests are in the file tests/tests_api.py
-These tests must be run against the active component. Is possible to run the component with a test configuration, 
-which is found in tests/test_run.py. To use another configuration, is possible to define it in the config.py file, then 
-pass that configuration instead og the test default configuration
+To test the component, in cmd navigate in the component folder, then:
+```
+make test
+```
 
-to run the tests: python3 -m unittest
+### Remove the component 
+To test the component, in cmd navigate in the component folder, then:
+```
+make clean
+```
 
 ### Evaluating the results
 
@@ -121,13 +130,6 @@ At the current state of the implementation§ no particular results are logged af
 ## Integration
 
 At the current state of the implementation there is no continuous integration support.
-
-## Deployment 
-
-At the current state of the implementation there is no continuous deployment support.
-
-## Known and Open issues
- 
  
 ## Contact Info
 
