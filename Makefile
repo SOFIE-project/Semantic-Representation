@@ -15,7 +15,7 @@ help:
 
 setup:
 	@echo "Building container image"
-	#${PIP} install -r requirements.txt
+	${PIP} install -r requirements.txt
 	docker build . -t ${IMAGE_NAME}
 
 test:
