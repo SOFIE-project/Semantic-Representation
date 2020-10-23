@@ -179,6 +179,26 @@ make clean
 The user can evaluate the status of the component by running the tests. If all of them are positive then the component 
 should run as intended.
 
+## Open issue
+The component, in the current state there is no major bug or missing functionality.
+
+## Future Work
+The component satisfy SOFIE project requirements and there is no plan to extend functionalities.
+
+## Release Note
+
+**2020-09-17**
+
+**Added**
+
+- Updated API design e performance upgrade
+
+**2020-08-07**
+
+**Added**
+
+- Main validation functionalities 
+
 ## Contact Info
 
 filippo.vimini@aalto.fi
