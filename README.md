@@ -36,7 +36,7 @@ The semantic representation component typically offers two functionalities:
 - Data semantic definition
 - Data validation
 
-As shown in the figure below, systems implementing the SR enable interoperability by defining a data semantic which
+As shown in the figure 1, systems implementing the SR enable interoperability by defining a data semantic which
 can be used by other entities to exchange data. The interoperability is achieved with a data model,
 which can be defined using different data representation standards, such as JSON schemas, W3C WoT Thing Description, 
 but proprietary models can also be implemented when required by the application. 
@@ -44,6 +44,8 @@ This data model is then managed by the SR component, which allows users to defin
 An example could be the definition of security rules in the schema stored in the SR component: 
 defining the security rules enforces third parties’ schema implementations to satisfy them if they want to communicate with the system. 
 Another example is the definition of a schema which defines the main properties and interfaces of the IoT devices that can interact with the system. 
+
+Figure 1 : Semantic Representation system interoperability 
 
 ![SR Diargam](docs/img/SR_diagram.png)
 
@@ -53,7 +55,11 @@ This chapter shows different views to explain the component architecture.
 
 #### Object Flow View
 
+Figure 2: Object flow view
+
 ![Alt text](docs/img/object-flow.jpg "Object flow")
+
+Table 1: Component description
 
 | Name                   | Description                                                                                                                                                                                                                                                                 |
 |------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -69,6 +75,12 @@ This chapter shows different views to explain the component architecture.
 
 #### Objects Example
 
+The Figure 3 shows an example for Thing Description where it is defined the acceptable information for the name and the age.
+The image then shows two JSON message, the one on the left is valid because it is concordant with the Thing Description rules. 
+The message on the right instead is not valid and therefore will be rejected.
+
+Figure 3: JSON message examples
+
 | Thing description                                  |
 |----------------------------------------------------|
 | ![Thing Description](docs/img/ThingDescriptionExample.png) |
@@ -78,6 +90,9 @@ This chapter shows different views to explain the component architecture.
 | ![Valid obj](docs/img/validTDobject.png) | ![Not valid obj](docs/img/NotValidSRobject.png) |
 
 #### Sequence diagram
+The following sequence diagram shows the main steps occuring when a system which uses SR validates a message 
+
+Figure 4: Semantic Representation validation process
 
 ![Sequence Diagram](docs/img/sequence_diagram.png)
 
@@ -191,7 +206,7 @@ The component satisfy SOFIE project requirements and there is no plan to extend 
 
 **Added**
 
-- Updated API design e performance upgrade
+- Updated API design and performance upgrade
 
 **2020-08-07**
 
